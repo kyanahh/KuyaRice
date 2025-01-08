@@ -142,7 +142,7 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
                     </div>
                     <div class="row">
                         <div class="col d-grid gap-2">
-                            <p class="text-center mt-2">Don't have an account yet?<a href="signup.php" class="text-decoration-none"> Sign up here.</a></p>
+                            <p class="text-center mt-2">Don't have an account yet?<a href="register.php" class="text-decoration-none"> Sign up here.</a></p>
                         </div>
                     </div>
                 </form>
@@ -169,6 +169,9 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
                     </div>
                 </div>
                 <div class="col-sm-2">
+                    <div class="row">
+                        <a href="#" class="text-decoration-none text-white mb-3">FAQs</a>
+                    </div>
                     <div class="row">
                         <a href="#" class="text-decoration-none text-white mb-3">Terms & Conditions</a>
                     </div>
