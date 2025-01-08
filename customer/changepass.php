@@ -7,12 +7,6 @@ require("../server/connection.php");
 if(isset($_SESSION["logged_in"])){
     if(isset($_SESSION["userid"])){
         $textaccount = $_SESSION["userid"];
-        $firstname = $_SESSION["firstname"];
-        $lastname = $_SESSION["lastname"];
-        $gender = $_SESSION["gender"];
-        $phone = $_SESSION["phone"];
-        $email = $_SESSION["email"];
-        $homeaddress = $_SESSION["homeaddress"];
 
     }else{
         $textaccount = "Account";
@@ -21,6 +15,8 @@ if(isset($_SESSION["logged_in"])){
 }else{
     $textaccount = "Account";
 }
+
+$currentpass = $newpass = $confirmpass = "";
 
 ?>
 
@@ -86,40 +82,24 @@ if(isset($_SESSION["logged_in"])){
     <div class="container my-5 d-flex justify-content-center">
         <div class="card col-sm-6">
             <div class="card-header bg-white py-4 fw-bold h4">
-                My Profile
+                Change Password
             </div>
             <form method="POST" action="<?php htmlspecialchars("SELF_PHP"); ?>">
             <div class="card-body">
                 <div class="row">
                     <div class="col">
-                        <label for="firstname" class="form-label">First Name</label>
-                        <input type="text" class="form-control" id="firstname" name="firstname" value="<?php echo $firstname; ?>" placeholder="First Name" disabled>
+                        <input type="text" class="form-control" id="currentpass" name="currentpass" value="<?php echo $currentpass; ?>" placeholder="Current Password" required>
                     </div>
+                </div>
+                <div class="row mt-3">
+                    <p>Please enter your new password below.</p>
                     <div class="col">
-                        <label for="lastname" class="form-label">Last Name</label>
-                        <input type="text" class="form-control" id="lastname" name="lastname" value="<?php echo $lastname; ?>" placeholder="Last Name" disabled>
+                        <input type="text" class="form-control" id="newpass" name="newpass" value="<?php echo $newpass; ?>" placeholder="New Password" required>
                     </div>
                 </div>
                 <div class="row mt-3">
                     <div class="col">
-                        <label for="gender" class="form-label">Gender</label>
-                        <input type="text" class="form-control" id="gender" name="gender" value="<?php echo $gender; ?>" placeholder="Gender" disabled>
-                    </div>
-                    <div class="col">
-                        <label for="phone" class="form-label">Phone Number</label>
-                        <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $phone; ?>" placeholder="Phone Number" required>
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="text" class="form-control" id="email" name="email" value="<?php echo $email; ?>" placeholder="Email" required>
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col">
-                        <label for="homeaddress" class="form-label">Address</label>
-                        <input type="text" class="form-control" id="homeaddress" name="homeaddress" value="<?php echo $homeaddress; ?>" placeholder="Home Address" required>
+                        <input type="text" class="form-control" id="confirmpass" name="confirmpass" value="<?php echo $confirmpass; ?>" placeholder="Confirm Password" required>
                     </div>
                 </div>
                 <div class="row">
@@ -135,7 +115,7 @@ if(isset($_SESSION["logged_in"])){
                             }
                             ?>
                             <button type="submit" class="btn btn-dark mt-3 fw-bold">Save</button>
-                            <a href="changepass.php" class="btn btn-warning fw-bold">Change Password</a>
+                            <a href="account.php" class="btn btn-danger fw-bold">Cancel</a>
                         </div>
                     </div>
             </div>

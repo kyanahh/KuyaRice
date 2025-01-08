@@ -24,6 +24,7 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
         $_SESSION["phone"] = $record["phone"];
         $_SESSION["gender"] = $record["gender"];
         $_SESSION["email"] = $record["email"];
+        $_SESSION["homeaddress"] = $record["homeaddress"];
         $_SESSION["usertype"] = $record["usertype"];
         $_SESSION["logged_in"] = true;
         $_SESSION["show_toast"] = true; // Set the flag to show the toast
