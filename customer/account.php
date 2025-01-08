@@ -22,6 +22,27 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
+if (isset($_SESSION['toast_message'])) {
+    echo "
+    <div class='toast-container position-fixed top-0 end-0 p-3' style='z-index: 1050;'>
+        <div class='toast align-items-center text-bg-success border-0' role='alert' aria-live='assertive' aria-atomic='true'>
+            <div class='d-flex'>
+                <div class='toast-body'>
+                    {$_SESSION['toast_message']}
+                </div>
+                <button type='button' class='btn-close btn-close-white me-2 m-auto' data-bs-dismiss='toast' aria-label='Close'></button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const toastEl = document.querySelector('.toast');
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    </script>
+    ";
+    unset($_SESSION['toast_message']);
+}
+
 ?>
 
 <!DOCTYPE html>

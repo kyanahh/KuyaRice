@@ -1,23 +1,49 @@
 <?php
-
 session_start();
-
 require("../server/connection.php");
 
 if(isset($_SESSION["logged_in"])){
     if(isset($_SESSION["userid"])){
         $textaccount = $_SESSION["userid"];
-
     }else{
         $textaccount = "Account";
     }
-
 }else{
     $textaccount = "Account";
 }
 
 $currentpass = $newpass = $confirmpass = "";
 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $currentpass = $_POST["currentpass"];
+    $newpass = $_POST["newpass"];
+    $confirmpass = $_POST["confirmpass"];
+
+    $result = $connection->query("SELECT password FROM users WHERE userid = '$textaccount'");
+    $record = $result->fetch_assoc();
+    $stored_password = $record["password"];
+
+    if ($currentpass === $stored_password) {
+        if ($newpass === $confirmpass) {
+            $updatePasswordQuery = "UPDATE users SET password = ? WHERE userid = ?";
+            $stmt = $connection->prepare($updatePasswordQuery);
+            $stmt->bind_param("ss", $newpass, $textaccount);
+            $stmt->execute();
+
+            $_SESSION['toast_message'] = "Password successfully changed.";
+        } else {
+            $_SESSION['toast_message'] = "New password and confirmation do not match.";
+            $currentpass = $newpass = $confirmpass = "";
+        }
+    } else {
+        $_SESSION['toast_message'] = "Old password does not match.";
+        $currentpass = $newpass = $confirmpass = "";
+    }
+
+    // Redirect to account page to display the toast
+    header("Location: account.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -88,18 +114,23 @@ $currentpass = $newpass = $confirmpass = "";
             <div class="card-body">
                 <div class="row">
                     <div class="col">
-                        <input type="text" class="form-control" id="currentpass" name="currentpass" value="<?php echo $currentpass; ?>" placeholder="Current Password" required>
+                        <input type="password" class="form-control" id="currentpass" name="currentpass" value="<?php echo $currentpass; ?>" placeholder="Current Password" required>
                     </div>
                 </div>
                 <div class="row mt-3">
                     <p>Please enter your new password below.</p>
                     <div class="col">
-                        <input type="text" class="form-control" id="newpass" name="newpass" value="<?php echo $newpass; ?>" placeholder="New Password" required>
+                        <input type="password" class="form-control" id="newpass" name="newpass" value="<?php echo $newpass; ?>" placeholder="New Password" required>
                     </div>
                 </div>
                 <div class="row mt-3">
                     <div class="col">
-                        <input type="text" class="form-control" id="confirmpass" name="confirmpass" value="<?php echo $confirmpass; ?>" placeholder="Confirm Password" required>
+                        <input type="password" class="form-control" id="confirmpass" name="confirmpass" value="<?php echo $confirmpass; ?>" placeholder="Confirm Password" required>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col">
+                        <input type="checkbox" id="showPassword" onclick="togglePassword()"> Show Password
                     </div>
                 </div>
                 <div class="row">
@@ -171,6 +202,17 @@ $currentpass = $newpass = $confirmpass = "";
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        function togglePassword() {
+            var passwordField = document.getElementById("password");
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+            } else {
+                passwordField.type = "password";
+            }
+        }
+    </script>
 
 </body>
 </html>
