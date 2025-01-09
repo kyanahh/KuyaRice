@@ -7,6 +7,7 @@ require("../server/connection.php");
 if(isset($_SESSION["logged_in"])){
     if(isset($_SESSION["userid"])){
         $textaccount = $_SESSION["userid"];
+        $useremail = $_SESSION["email"];
         $firstname = $_SESSION["firstname"];
         $lastname = $_SESSION["lastname"];
         $gender = $_SESSION["gender"];
@@ -22,25 +23,29 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
-if (isset($_SESSION['toast_message'])) {
-    echo "
-    <div class='toast-container position-fixed top-0 end-0 p-3' style='z-index: 1050;'>
-        <div class='toast align-items-center text-bg-success border-0' role='alert' aria-live='assertive' aria-atomic='true'>
-            <div class='d-flex'>
-                <div class='toast-body'>
-                    {$_SESSION['toast_message']}
-                </div>
-                <button type='button' class='btn-close btn-close-white me-2 m-auto' data-bs-dismiss='toast' aria-label='Close'></button>
-            </div>
-        </div>
-    </div>
-    <script>
-        const toastEl = document.querySelector('.toast');
-        const toast = new bootstrap.Toast(toastEl);
-        toast.show();
-    </script>
-    ";
-    unset($_SESSION['toast_message']);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $usersid = $_SESSION["userid"];
+    $phone = $_POST["phone"];
+    $newEmail = $_POST["email"];
+    $homeaddress = $_POST["homeaddress"];
+
+    $updateQuery = "UPDATE users SET email = ?, phone = ?, homeaddress = ? WHERE userid = ?";
+    $stmt = $connection->prepare($updateQuery);
+    $stmt->bind_param("sssi", $newEmail, $phone, $homeaddress, $usersid);
+    $stmt->execute();
+
+    // Refresh session variables with updated user data
+    $result = $connection->query("SELECT * FROM users WHERE email = '$newEmail'");
+    if ($result->num_rows > 0) {
+        $updatedUser = $result->fetch_assoc();
+        $_SESSION["phone"] = $updatedUser["phone"];
+        $_SESSION["email"] = $updatedUser["email"];
+        $_SESSION["homeaddress"] = $updatedUser["homeaddress"];
+    }
+
+    $_SESSION["successMessage"] = "Profile updated successfully";
+    header("Location: account.php");
+    exit();
 }
 
 ?>
@@ -145,16 +150,11 @@ if (isset($_SESSION['toast_message'])) {
                 </div>
                 <div class="row">
                         <div class="col d-grid gap-2">
-                            <?php
+                        <?php
                             if (!empty($successMessage)) {
-                                echo "
-                                <div class='alert alert-warning alert-dismissible fade show' role='alert'>
-                                    <strong>$successMessage</strong>
-                                    <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
-                                </div>
-                                ";
+                                echo "<p class='text-danger'>$successMessage</p>";
                             }
-                            ?>
+                        ?>
                             <button type="submit" class="btn btn-dark mt-3 fw-bold">Save</button>
                             <a href="changepass.php" class="btn btn-warning fw-bold">Change Password</a>
                         </div>
@@ -207,11 +207,37 @@ if (isset($_SESSION['toast_message'])) {
         </div>
     </footer>
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <?php 
+                    if (isset($_SESSION['successMessage'])) {
+                        echo $_SESSION['successMessage'];
+                        unset($_SESSION['successMessage']); // Clear the message after displaying
+                    }
+                    ?>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script -->  
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var successToast = document.getElementById('successToast');
+            if (successToast) {
+                var toast = new bootstrap.Toast(successToast);
+                toast.show();
+            }
+        });
+    </script>
 
 </body>
 </html>
