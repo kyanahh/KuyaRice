@@ -36,7 +36,7 @@ if(isset($_SESSION["logged_in"])){
         }
     </style>
 </head>
-<body>
+<body class="bg-black">
     
     <nav class="navbar navbar-expand-lg py-3 bg-black text-white">
         <div class="container-fluid">
@@ -84,18 +84,18 @@ if(isset($_SESSION["logged_in"])){
                 <img src="../img/logobg.png" alt="KUYA RICE">
             </div>
             <div class="d-flex justify-content-center">
-                <h3 class="fw-bold my-5">Available Branches in Muntinlupa, Dasmariñas, Cabuyao</h3>
+                <h3 class="fw-bold my-5 text-white">Available Branches in Muntinlupa, Dasmariñas, Cabuyao</h3>
             </div>
-            <h2 class="fw-bold">Menu</h2>
-            <p class="fs-5">What are you craving for today?</p>
+            <h2 class="fw-bold text-white">Menu</h2>
+            <p class="fs-5 text-white">What are you craving for today?</p>
             <div class="d-flex justify-content-center">
-                <img src="../img/menufinal.png" alt="MENU" class="w-75">
+                <img src="../img/menufinal1.png" alt="MENU" class="w-75">
             </div>
             <div class="d-flex justify-content-center">
                 <a href="menu.php" class="btn btn-danger py-3 px-5 mt-3 fw-bold">ORDER NOW</a>
             </div>
-            <h2 class="fw-bold mt-5">Featured</h2>
-            <p class="fs-5">Discover your new favorites here!</p>
+            <h2 class="fw-bold mt-5 text-white">Featured</h2>
+            <p class="fs-5 text-white">Discover your new favorites here!</p>
             <div class="d-flex justify-content-center">
                 <img src="../img/featured.jpg" alt="Featured" class="w-75">
             </div>

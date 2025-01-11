@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </style>
 </head>
-<body>
+<body class="bg-black">
     
     <nav class="navbar navbar-expand-lg py-3 bg-black text-white">
         <div class="container-fluid">
