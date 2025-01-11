@@ -17,38 +17,39 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
-$currentpass = $newpass = $confirmpass = "";
+$firstname = $lastname = $phone = $gender = $email = $homeaddress =  $usertype = $password = $errorMessage = $successMessage = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $currentpass = $_POST["currentpass"];
-    $newpass = $_POST["newpass"];
-    $confirmpass = $_POST["confirmpass"];
+    $firstname =  ucwords($_POST["firstname"]);
+    $lastname =  ucwords($_POST["lastname"]);
+    $homeaddress =  ucwords($_POST["homeaddress"]);
+    $phone = $_POST["phone"];
+    $gender = $_POST["gender"];
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+    $usertype = $_POST["usertype"];
 
-    $result = $connection->query("SELECT password FROM users WHERE userid = '$textaccount'");
-    $record = $result->fetch_assoc();
-    $stored_password = $record["password"];
+    
+    // Check if the email already exists in the database
+    $emailExistsQuery = "SELECT * FROM users WHERE email = '$email'";
+    $emailExistsResult = $connection->query($emailExistsQuery);
 
-    if ($currentpass === $stored_password) {
-        if ($newpass === $confirmpass) {
-            $updatePasswordQuery = "UPDATE users SET password = ? WHERE userid = ?";
-            $stmt = $connection->prepare($updatePasswordQuery);
-            $stmt->bind_param("ss", $newpass, $textaccount);
-            $stmt->execute();
-
-            $successMessage = "Password successfully changed.";
-            $toastType = "success";
-            $currentpass = $newpass = $confirmpass = "";
-        } else {
-            $successMessage = "New password and confirmation do not match.";
-            $toastType = "danger";
-            $currentpass = $newpass = $confirmpass = "";
-        }
+    if ($emailExistsResult->num_rows > 0) {
+        $errorMessage = "User already exists";
     } else {
-        $successMessage = "Old password does not match.";
-        $toastType = "danger";
-        $currentpass = $newpass = $confirmpass = "";
-    }
+        $insertQuery = "INSERT INTO users (firstname, lastname, gender, phone, homeaddress, email, password, usertype) 
+                        VALUES ('$firstname', '$lastname', '$gender', '$phone', '$homeaddress', '$email', '$password', '$usertype')";
+        $result = $connection->query($insertQuery);
 
+        if (!$result) {
+            $errorMessage = "Invalid query " . $connection->error;
+        } else {
+            $_SESSION['toast_message'] = "Account successfully created";
+            header("Location: users.php");
+            exit();
+        }
+    }
+    
 }
 
 ?>
@@ -61,14 +62,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Tapsihan ni Kuya Rice</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        .dropdown:hover .dropdown-menu {
-            display: block;
-        }
-        .dropdown:hover .dropdown-toggle {
-            background-color: #000000;
-        }
-    </style>
 </head>
 <body>
 
@@ -123,45 +116,62 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </nav>
 
     <!-- MAIN -->
-    <div class="container my-5 d-flex justify-content-center">
-        <div class="card col-sm-6">
-            <div class="card-header bg-white py-4 fw-bold h4">
-                Change Password
-            </div>
+    <div class="container my-4 pt-3">
+        <div class="card shadow p-3">
+            <h4 class="text-center mb-3 fw-bold">Add New User</h4>
             <form method="POST" action="<?php htmlspecialchars("SELF_PHP"); ?>">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col">
-                        <input type="password" class="form-control" id="currentpass" name="currentpass" value="<?php echo $currentpass; ?>" placeholder="Current Password" required>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label for="firstname" class="form-label small">First Name</label>
+                        <input type="text" class="form-control form-control-sm" id="firstname" name="firstname" value="<?php echo $firstname; ?>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="lastname" class="form-label small">Last Name</label>
+                        <input type="text" class="form-control form-control-sm" id="lastname" name="lastname" value="<?php echo $lastname; ?>" required>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <p>Please enter your new password below.</p>
-                    <div class="col">
-                        <input type="password" class="form-control" id="newpass" name="newpass" value="<?php echo $newpass; ?>" placeholder="New Password" required>
+                <div class="mb-2">
+                    <label for="homeaddress" class="form-label small">Home Address</label>
+                    <input type="text" class="form-control form-control-sm" id="homeaddress" name="homeaddress" value="<?php echo $homeaddress; ?>" required>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label small">Phone</label>
+                        <input type="tel" class="form-control form-control-sm" id="phone" name="phone" value="<?php echo $phone; ?>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="gender" class="form-label small">Gender</label>
+                        <select class="form-select form-select-sm" id="gender" name="gender" required>
+                            <option value="Male" <?php echo ($gender === "Male") ? "selected" : ""; ?>>Male</option>
+                            <option value="Female" <?php echo ($gender === "Female") ? "selected" : ""; ?>>Female</option>
+                        </select>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col">
-                        <input type="password" class="form-control" id="confirmpass" name="confirmpass" value="<?php echo $confirmpass; ?>" placeholder="Confirm Password" required>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label for="email" class="form-label small">Email</label>
+                        <input type="email" class="form-control form-control-sm" id="email" name="email" value="<?php echo $email; ?>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="password" class="form-label small">Password</label>
+                        <input type="password" class="form-control form-control-sm" id="password" name="password" value="<?php echo $password; ?>" required>
                     </div>
                 </div>
-                <div class="row mt-2">
-                    <div class="col">
-                        <input type="checkbox" id="showPassword" onclick="togglePassword()"> Show Password
-                    </div>
+                <div class="mb-2">
+                    <label for="usertype" class="form-label small">User Type</label>
+                    <select class="form-select form-select-sm" id="usertype" name="usertype" required>
+                        <option value="Admin" <?php echo ($usertype === "Admin") ? "selected" : ""; ?>>Admin</option>
+                        <option value="Staff" <?php echo ($usertype === "Staff") ? "selected" : ""; ?>>Staff</option>
+                        <option value="Customer" <?php echo ($usertype === "Customer") ? "selected" : ""; ?>>Customer</option>
+                    </select>
                 </div>
-                <div class="row">
-                        <div class="col d-grid gap-2">
-                            <button type="submit" class="btn btn-dark mt-3 fw-bold">Save</button>
-                            <a href="profile.php" class="btn btn-danger fw-bold">Back to Profile</a>
-                        </div>
-                    </div>
-            </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-dark btn-sm px-5 py-2">Add User</button>
+                    <a href="users.php" class="btn btn-danger btn-sm px-5 py-2">Cancel</a>
+                </div>
             </form>
         </div>
     </div>
-
 
     <!-- FOOTER -->
     <footer class="bg-black d-flex align-items-center mt-5" style="height: 200px;">
@@ -208,50 +218,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </footer>
 
-    <div aria-live="polite" aria-atomic="true" class="position-relative">
-        <div class="toast-container position-fixed bottom-0 end-0 p-3">
-            <div id="successToast" class="toast bg-<?php echo $toastType; ?> text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header bg-white">
-                    <strong class="me-auto">Notification</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    <?php echo $successMessage ?? ""; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Script -->  
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script>
-        function togglePassword() {
-            var passwordField = document.getElementById("currentpass");
-            var newPassword = document.getElementById("newpass");
-            var confirmPassword = document.getElementById("confirmpass");
-
-            // Check the type of any field and toggle all
-            var newType = passwordField.type === "password" ? "text" : "password";
-
-            passwordField.type = newType;
-            newPassword.type = newType;
-            confirmPassword.type = newType;
-        }
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const toastElement = document.getElementById("successToast");
-            if (toastElement.querySelector(".toast-body").textContent.trim() !== "") {
-                const toast = new bootstrap.Toast(toastElement);
-                toast.show();
-            }
-        });
-    </script>
 
 </body>
 </html>
