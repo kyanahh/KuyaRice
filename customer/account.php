@@ -67,9 +67,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </style>
 </head>
-<body class="bg-black">
+<body>
     
-    <nav class="navbar navbar-expand-lg py-3 bg-black text-white">
+    <nav class="navbar navbar-expand-lg py-3 bg-black text-white fixed-top">
         <div class="container-fluid">
             <img src="../img/logobg.png" alt="KUYA RICE" style="height: 7vh;" class="ms-3">
           <div class="collapse navbar-collapse d-flex justify-content-end" id="navbarNavDropdown">
@@ -109,8 +109,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
       </nav>
 
-    <div class="container my-5 d-flex justify-content-center">
-        <div class="card col-sm-6">
+    <div class="container my-5 d-flex justify-content-center pt-5">
+        <div class="card col-sm-6 mt-4 shadow">
             <div class="card-header bg-white py-4 fw-bold h4">
                 My Profile
             </div>

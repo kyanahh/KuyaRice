@@ -62,9 +62,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body class="bg-black">
+<body>
     
-    <nav class="navbar navbar-expand-lg py-3 bg-black text-white">
+    <nav class="navbar navbar-expand-lg py-3 bg-black text-white fixed-top">
         <div class="container-fluid">
             <img src="img/logobg.png" alt="KUYA RICE" style="height: 7vh;" class="ms-3">
           <div class="collapse navbar-collapse d-flex justify-content-end" id="navbarNavDropdown">
@@ -111,8 +111,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </nav>
 
     <!-- MAIN -->
-    <div class="container-fluid">
-        <div class="card mt-5 col-md-6 mx-auto">
+    <div class="container-fluid mt-5 pt-5">
+        <div class="card mt-5 col-md-6 mx-auto shadow">
             <div class="card-body">
                 <?php
                 if (!empty($errorMessage)) {

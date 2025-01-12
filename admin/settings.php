@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-black py-3">
+    <nav class="navbar navbar-dark bg-black py-3 fixed-top">
         <div class="container-fluid">
             <div class="d-flex align-items-center">
                 <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBlackNavbar" aria-controls="offcanvasBlackNavbar" aria-label="Toggle navigation">
@@ -123,8 +123,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </nav>
 
     <!-- MAIN -->
-    <div class="container my-5 d-flex justify-content-center">
-        <div class="card col-sm-6">
+    <div class="container my-5 d-flex justify-content-center pt-5">
+        <div class="card col-sm-6 shadow mt-4">
             <div class="card-header bg-white py-4 fw-bold h4">
                 Change Password
             </div>
