@@ -19,7 +19,9 @@ if (isset($_SESSION["logged_in"])) {
 if (isset($_GET['orderid'])) {
     $orderid = $_GET['orderid'];
 } else {
-    echo "<script>alert('Order ID is missing!'); window.location.href='orders.php';</script>";
+    // Show toast instead of alert
+    $_SESSION['error_message'] = 'Order ID is missing!';
+    header('Location: orders.php'); // redirect back to orders page
     exit;
 }
 
@@ -71,20 +73,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
 
             // Commit transaction
             $connection->commit();
-            echo "<script>alert('Order placed successfully!'); window.location.href='orders.php';</script>";
+            // After placing the order successfully
+            $_SESSION['success_message'] = 'Order placed successfully!';
+            header('Location: orders.php');
+            exit;             
         } catch (Exception $e) {
             // Rollback transaction in case of error
             $connection->rollback();
-            echo "<script>alert('Error updating order: " . $e->getMessage() . "'); window.location.href='orders.php';</script>";
+            $_SESSION['error_message'] = 'Error updating order: ' . $e->getMessage();
+            header('Location: orders.php'); // Redirect to orders page with error message
         }
     } else {
-        echo "<script>alert('Insufficient payment!');</script>";
+        $_SESSION['error_message'] = 'Insufficient payment!';
+        header('Location: orders.php'); // Redirect to orders page with error message
     }
 }
-
-$cartItems = $_SESSION['cart'];
-
-
 ?>
 
 <!DOCTYPE html>
@@ -131,7 +134,7 @@ $cartItems = $_SESSION['cart'];
                             <a class="nav-link" href="orders.php"><i class="bi bi-cart-check me-2"></i>Orders</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Transactions</a>
+                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Order Details</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
@@ -196,7 +199,7 @@ $cartItems = $_SESSION['cart'];
                 <form method="POST" action="">
                     <div class="mb-3">
                         <label for="paid_amount" class="form-label">Paid Amount</label>
-                        <input type="number" class="form-control" id="paid_amount" name="paid_amount" value="<?php echo $paid_amount ?>" step="0.01" min="0" required>
+                        <input type="number" class="form-control" id="paid_amount" name="paid_amount" value="<?php echo isset($paid_amount) ? $paid_amount : 0 ?>" step="0.01" min="0" required>
                     </div>
                     <div class="mb-3">
                         <label for="change_amount" class="form-label">Change</label>
@@ -277,6 +280,21 @@ $cartItems = $_SESSION['cart'];
         </div>
     </footer>
 
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <?php if (isset($_SESSION['error_message'])): ?>
+            <div id="errorToast" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto text-danger">Error</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <?php echo $_SESSION['error_message']; ?>
+                </div>
+            </div>
+            <?php unset($_SESSION['error_message']); ?>
+        <?php endif; ?>
+    </div>
+
     <!-- Script -->  
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -295,12 +313,16 @@ $cartItems = $_SESSION['cart'];
             document.getElementById('paid_display').textContent = paidAmount.toFixed(2);
         });
 
-        // Show GCash QR code if selected
-        document.getElementById('payment_method').addEventListener('change', function() {
-            if (this.value === 'gcash') {
-                document.getElementById('gcash_qr').style.display = 'block';
-            } else {
-                document.getElementById('gcash_qr').style.display = 'none';
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            var toastElement = document.getElementById('errorToast');
+            if (toastElement) {
+                setTimeout(function () {
+                    var toast = new bootstrap.Toast(toastElement);
+                    toast.hide();
+                }, 3000); // Toast hides after 3 seconds
             }
         });
     </script>

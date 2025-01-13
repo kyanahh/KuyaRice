@@ -151,7 +151,7 @@ if (!empty($_SESSION['cart'])) {
                             <a class="nav-link" href="orders.php"><i class="bi bi-cart-check me-2"></i>Orders</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Transactions</a>
+                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Order Details</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>

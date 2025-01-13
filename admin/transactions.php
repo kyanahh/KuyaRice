@@ -72,7 +72,7 @@ if(isset($_SESSION["logged_in"])){
                             <a class="nav-link" href="orders.php"><i class="bi bi-cart-check me-2"></i>Orders</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Transactions</a>
+                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Order Details</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
@@ -118,7 +118,6 @@ if(isset($_SESSION["logged_in"])){
                                     <th scope="col">Quantity</th>
                                     <th scope="col">Price</th>
                                     <th scope="col">Total Amount</th>
-                                    <th scope="col" class="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="table-group-divider">
@@ -138,12 +137,6 @@ if(isset($_SESSION["logged_in"])){
                                             echo '<td>' . $row['quantity'] . '</td>';
                                             echo '<td>' . $row['price'] . '</td>';
                                             echo '<td>' . $row['total_amount'] . '</td>';
-                                            echo '<td>';
-                                            echo '<div class="d-flex justify-content-center gap-2">';
-                                            echo '<button class="btn btn-sm btn-primary" onclick="editDetail(' . $row['orderdetailid'] . ')">Edit</button>';
-                                            echo '<button class="btn btn-sm btn-danger" onclick="deleteDetail(' . $row['orderdetailid'] . ')">Delete</button>';
-                                            echo '</div>';
-                                            echo '</td>';
                                             echo '</tr>';
                                             $count++; 
                                         }
@@ -281,10 +274,6 @@ if(isset($_SESSION["logged_in"])){
             });
         }
 
-        //---------------------------Edit Order Detail ---------------------------//
-        function editDetail(orderdetailid) {
-            window.location = "transactionedit.php?orderdetailid=" + orderdetailid;
-        }
 
         //---------------------------Delete Order Detail ---------------------------//
         let detailIdToDelete = null;

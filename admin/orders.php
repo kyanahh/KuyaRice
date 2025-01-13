@@ -58,7 +58,7 @@ if(isset($_SESSION["logged_in"])){
                             <a class="nav-link" href="orders.php"><i class="bi bi-cart-check me-2"></i>Orders</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Transactions</a>
+                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Order Details</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
@@ -88,6 +88,7 @@ if(isset($_SESSION["logged_in"])){
                 <h2 class="fs-5 m-0">Orders</h2>
                 <div class="d-flex">
                     <input type="text" class="form-control me-2" id="searchOrderInput" placeholder="Search" aria-label="Search" oninput="searchOrder()">
+                    <button class="btn btn-dark px-4" data-bs-toggle="modal" data-bs-target="#addOrderModal"><i class="bi bi-plus-lg text-white"></i></button>
                 </div>
             </div>
 
@@ -366,6 +367,45 @@ if(isset($_SESSION["logged_in"])){
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
+    </div>
+
+    <!-- Add Order Modal -->
+    <div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addOrderModalLabel">Input User ID</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addOrderForm">
+                        <div class="mb-3">
+                            <label for="orderTypeInput" class="form-label">User ID</label>
+                            <input type="text" class="form-control" id="orderTypeInput" name="userid" placeholder="Enter User ID" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveOrderButton">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <?php if (isset($_SESSION['success_message'])): ?>
+            <div id="successToast" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto text-success">Success</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <?php echo $_SESSION['success_message']; ?>
+                </div>
+            </div>
+            <?php unset($_SESSION['success_message']); ?>
+        <?php endif; ?>
     </div>
 
     <!-- Script -->  
@@ -678,6 +718,60 @@ if(isset($_SESSION["logged_in"])){
                 console.error('Toast element not found');
             }
         }
+
+        //--------------------------- Add Order ---------------------------//
+        $(document).ready(function () {
+            $('#saveOrderButton').on('click', function () {
+                const orderType = $('#orderTypeInput').val();
+
+                if (orderType.trim() === '') {
+                    showDynamicToast('Please enter a User ID.', 'warning');
+                    return;
+                }
+
+                // Send data to the server, including the logged-in staff ID (from session)
+                $.ajax({
+                    url: 'orderadding.php',
+                    type: 'POST',
+                    data: { 
+                        userid: orderType, 
+                        staffid: <?php echo isset($_SESSION["userid"]) ? $_SESSION["userid"] : 'null'; ?>  // Pass the logged-in user's ID
+                    },
+                    success: function (response) {
+                        const result = JSON.parse(response);
+
+                        if (result.success) {
+                            // Exit the modal
+                            const orderModalElement = document.getElementById('addOrderModal');
+                            const addOrderModal = bootstrap.Modal.getInstance(orderModalElement);
+                            addOrderModal.hide();
+
+                            // Show toast and then refresh the page
+                            showToast('User ID in order added successfully.', "bg-success", () => {
+                                location.reload();
+                            });
+                        } else {
+                            // Handle error scenario
+                            showToast('Error adding User ID in order: ' + result.message, "bg-danger");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle errors from the AJAX request
+                        showToast('An error occurred while adding the User ID to the order.', 'bg-danger');
+                    }
+                });
+            });
+        });
+
+        $(document).ready(function () {
+            var toastElement = document.getElementById('successToast');
+            if (toastElement) {
+                setTimeout(function () {
+                    var toast = new bootstrap.Toast(toastElement);
+                    toast.hide();
+                }, 3000); // Toast hides after 3 seconds
+            }
+        });
 
     </script>
 
