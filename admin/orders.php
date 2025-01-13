@@ -138,7 +138,6 @@ if(isset($_SESSION["logged_in"])){
                                             // Confirmed
                                             if ($row['orderstatus'] == 'Confirmed') {
                                                 echo '<button class="btn btn-sm btn-info" onclick="addOrder(' . $row['orderid'] . ')">Add Order</button>';
-                                                echo '<button class="btn btn-sm btn-success" onclick="processNow(' . $row['orderid'] . ')">Process</button>';
                                             }
 
                                             // In The Kitchen
@@ -151,7 +150,6 @@ if(isset($_SESSION["logged_in"])){
                                                 echo '<button class="btn btn-sm btn-success" onclick="openDoneModal(' . $row['orderid'] . ')">Done</button>';
                                             }
 
-                                            echo '<button class="btn btn-sm btn-primary" onclick="editOrder(' . $row['orderid'] . ')">Edit</button>';
                                             echo '<button class="btn btn-sm btn-danger" onclick="deleteOrder(' . $row['orderid'] . ')">Delete</button>';
                                             echo '</div>';
                                             echo '</td>';
@@ -394,11 +392,6 @@ if(isset($_SESSION["logged_in"])){
                     console.error("Error during search request:", error);
                 }
             });
-        }
-
-        //---------------------------Edit Order---------------------------//
-        function editOrder(orderid) {
-            window.location = "orderedit.php?orderid=" + orderid;
         }
 
         //---------------------------Delete Order---------------------------//
