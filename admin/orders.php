@@ -58,10 +58,10 @@ if(isset($_SESSION["logged_in"])){
                             <a class="nav-link" href="orders.php"><i class="bi bi-cart-check me-2"></i>Orders</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Order Details</a>
+                            <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
+                            <a class="nav-link" href="userlogs.php"><i class="bi bi-box-seam me-2"></i>User Logs</a>
                         </li>
                     </ul>
                     <div class="dropup py-sm-4 py-1 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
@@ -143,12 +143,19 @@ if(isset($_SESSION["logged_in"])){
 
                                             // In The Kitchen
                                             if ($row['orderstatus'] == 'In The Kitchen') {
+                                                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
                                                 echo '<button class="btn btn-sm btn-success" onclick="openServeModal(' . $row['orderid'] . ')">Serve Now</button>';
                                             }
 
                                             // Currently Serving
                                             if ($row['orderstatus'] == 'Currently Serving') {
+                                                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
                                                 echo '<button class="btn btn-sm btn-success" onclick="openDoneModal(' . $row['orderid'] . ')">Done</button>';
+                                            }
+
+                                            // Done
+                                            if ($row['orderstatus'] == 'Done') {
+                                                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
                                             }
 
                                             echo '<button class="btn btn-sm btn-danger" onclick="deleteOrder(' . $row['orderid'] . ')">Delete</button>';
@@ -564,6 +571,11 @@ if(isset($_SESSION["logged_in"])){
         //---------------------------Add Order---------------------------//
         function addOrder(orderid) {
             window.location = "orderadd.php?orderid=" + orderid;
+        }
+
+        //---------------------------View Order---------------------------//
+        function View(orderid) {
+            window.location.href = `orderview.php?orderid=${orderid}`;
         }
 
         //---------------------------Process Order---------------------------//
