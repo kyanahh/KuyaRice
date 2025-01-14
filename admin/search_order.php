@@ -26,9 +26,12 @@ if (isset($_POST['query'])) {
         while ($row = $result->fetch_assoc()) {
             echo '<tr>';
             echo '<td>' . $row['orderid'] . '</td>';
+            echo '<td>' . $row['userid'] . '</td>';
             echo '<td>' . $row['firstname'] . ' ' . $row['lastname'] . '</td>';
             echo '<td>' . $row['orderstatus'] . '</td>';
+            echo '<td>' . $row['total_amount'] . '</td>';
             echo '<td>' . $row['ordercreated'] . '</td>';
+            echo '<td>' . $row['staffid'] . '</td>';
             echo '<td>';
             echo '<div class="d-flex justify-content-center gap-2">';
 
@@ -41,20 +44,11 @@ if (isset($_POST['query'])) {
             
             // Confirmed
             if ($row['orderstatus'] == 'Confirmed') {
-                echo '<button class="btn btn-sm btn-info" onclick="openOngoingModal(' . $row['orderid'] . ')">Ongoing</button>';
+                echo '<button class="btn btn-sm btn-info" onclick="addOrder(' . $row['orderid'] . ')">Add Order</button>';
             }
 
             // In The Kitchen
             if ($row['orderstatus'] == 'In The Kitchen') {
-                // Check if this orderid exists in the 'trans' table
-                $orderid = $row['orderid'];
-                $transCheck = $connection->query("SELECT COUNT(*) as count FROM trans WHERE orderid = $orderid");
-                $transCheckResult = $transCheck->fetch_assoc();
-
-                // If no binding exists, show the "Transact" button
-                if ($transCheckResult['count'] == 0) {
-                    echo '<button class="btn btn-sm btn-info" onclick="transOrder(' . $orderid . ')">Add Transaction</button>';
-                }                                               
                 echo '<button class="btn btn-sm btn-success" onclick="openServeModal(' . $row['orderid'] . ')">Serve Now</button>';
             }
 
@@ -63,7 +57,6 @@ if (isset($_POST['query'])) {
                 echo '<button class="btn btn-sm btn-success" onclick="openDoneModal(' . $row['orderid'] . ')">Done</button>';
             }
 
-            echo '<button class="btn btn-sm btn-primary" onclick="editOrder(' . $row['orderid'] . ')">Edit</button>';
             echo '<button class="btn btn-sm btn-danger" onclick="deleteOrder(' . $row['orderid'] . ')">Delete</button>';
             echo '</div>';
             echo '</td>';

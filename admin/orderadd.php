@@ -15,17 +15,17 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
-// Before using $orderid, make sure it is initialized
-if (isset($_GET['orderid'])) {
-    $orderid = $_GET['orderid'];
-} elseif (isset($_SESSION['orderid'])) {
+// Initialize orderid from SESSION or fallback to a default
+if (isset($_SESSION['orderid'])) {
     $orderid = $_SESSION['orderid'];
+} elseif (isset($_GET['orderid'])) {
+    $orderid = $_GET['orderid'];
+    $_SESSION['orderid'] = $orderid; // Save to session for persistence
 } else {
-    // Handle case where orderid is not available
-    $orderid = null; // or redirect to a relevant page if necessary
+    // Generate or redirect for a new orderid if needed
+    $orderid = null;
 }
-
-
+    
 // Initialize cart if not set
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = []; // Set as an empty array
@@ -34,26 +34,31 @@ if (!isset($_SESSION['cart'])) {
 // Handle Add to Cart
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add_to_cart'])) {
-        $menuid = $_POST['menuid'];   // Get the menuid
+        $menuid = $_POST['menuid'];
         $menuitem = $_POST['menuitem'];
         $quantity = (int)$_POST['quantity'];
 
-        // Query the menu table to get the price
         $query = "SELECT price FROM menu WHERE menuid = $menuid";
         $result = $connection->query($query);
         $menu = $result->fetch_assoc();
 
         if ($menu) {
-            // Assign the price from the database
             $price = $menu['price'];
 
-            // Add the item to the cart with menuid included
-            $_SESSION['cart'][] = [
-                'menuid' => $menuid,
-                'menuitem' => $menuitem,  // Name or description of the item
-                'price' => $price,  // Price of the item
-                'quantity' => $quantity  // Quantity of the item
-            ];
+            // Check if the item is already in the cart
+            if (array_key_exists($menuid, $_SESSION['cart'])) {
+                // Update the quantity for the existing item
+                $_SESSION['cart'][$menuid]['quantity'] += $quantity;
+            } else {
+                // Add a new item to the cart
+                $_SESSION['cart'][$menuid] = [
+                    'menuid' => $menuid,
+                    'menuitem' => $menuitem,
+                    'price' => $price,
+                    'quantity' => $quantity,
+                ];
+            }
+
         }
     }
 
@@ -62,25 +67,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $menuid = $_POST['menuid'];
         $quantity = (int)$_POST['quantity'];
 
-        if ($quantity > 0) {
-            $_SESSION['cart'][$menuid]['quantity'] = $quantity;
-        } else {
-            unset($_SESSION['cart'][$menuid]);
+        foreach ($_SESSION['cart'] as &$item) {
+            if ($item['menuid'] == $menuid) {
+                if ($quantity > 0) {
+                    $item['quantity'] = $quantity;
+                } else {
+                    unset($item);
+                }
+                break;
+            }
         }
+
+        $_SESSION['cart'] = array_values($_SESSION['cart']); // Re-index array
     }
 
     // Handle Remove Item
     if (isset($_POST['remove_item'])) {
         $menuid = $_POST['menuid'];
-        unset($_SESSION['cart'][$menuid]);
-
-        // Clear cart if empty
-        if (empty($_SESSION['cart'])) {
-            unset($_SESSION['cart']);
+        foreach ($_SESSION['cart'] as $key => $item) {
+            if ($item['menuid'] == $menuid) {
+                unset($_SESSION['cart'][$key]);
+                break;
+            }
         }
+
+        $_SESSION['cart'] = array_values($_SESSION['cart']); // Re-index array
+        
+    }
+
+     // Handle Clear Cart
+     if (isset($_POST['clear_cart'])) {
+        unset($_SESSION['cart']); // Remove all items from the cart
     }
 }
-
 
 $totalAmount = 0;
 if (!empty($_SESSION['cart'])) {
@@ -205,36 +224,43 @@ if (!empty($_SESSION['cart'])) {
                     </thead>
                     <tbody>
                         <?php 
-                        if (!empty($_SESSION['cart'])) {
-                            foreach ($_SESSION['cart'] as $menuid => $item) {
-                                echo '
-                                <tr>
-                                    <td>' . htmlspecialchars($item['menuitem']) . '</td>
-                                    <td>
-                                        <form method="POST" action="">
-                                            <input type="hidden" name="menuid" value="' . $menuid . '">
-                                            <input type="number" name="quantity" value="' . $item['quantity'] . '" class="form-control" min="1" style="width: 60px;">
-                                            <button type="submit" name="update_cart" class="btn btn-warning btn-sm mt-2">Update</button>
-                                        </form>
-                                    </td>
-                                    <td>₱' . number_format($item['price'], 2) . '</td>
-                                    <td>₱' . number_format($item['price'] * $item['quantity'], 2) . '</td>
-                                    <td>
-                                        <form method="POST" action="">
-                                            <input type="hidden" name="menuid" value="' . $menuid . '">
-                                            <button type="submit" name="remove_item" class="btn btn-danger btn-sm">Remove</button>
-                                        </form>
-                                    </td>
-                                </tr>';
+                            if (!empty($_SESSION['cart'])) {
+                                foreach ($_SESSION['cart'] as $menuid => $item) {
+                                    echo '
+                                    <tr>
+                                        <td>' . htmlspecialchars($item['menuitem']) . '</td>
+                                        <td>
+                                            <form method="POST" action="">
+                                                <input type="hidden" name="menuid" value="' . htmlspecialchars($item['menuid']) . '">
+                                                <input type="number" name="quantity" value="' . $item['quantity'] . '" class="form-control" min="1" style="width: 60px;">
+                                                <button type="submit" name="update_cart" class="btn btn-warning btn-sm mt-2">Update</button>
+                                            </form>
+                                        </td>
+                                        <td>₱' . number_format($item['price'], 2) . '</td>
+                                        <td>₱' . number_format($item['price'] * $item['quantity'], 2) . '</td>
+                                        <td>
+                                            <form method="POST" action="">
+                                                <input type="hidden" name="menuid" value="' . htmlspecialchars($item['menuid']) . '">
+                                                <button type="submit" name="remove_item" class="btn btn-danger btn-sm">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>';
+                                }
+                            } else {
+                                echo '<tr><td colspan="5" class="text-center">Your cart is empty.</td></tr>';
                             }
-                        } else {
-                            echo '<tr><td colspan="5" class="text-center">Your cart is empty.</td></tr>';
-                        }
                         ?>
                         <tr>
                             <td colspan="4" class="text-end"><strong>Total Amount:</strong></td>
                             <td><strong>₱<?php echo number_format($totalAmount, 2); ?></strong></td>
                         </tr>
+
+                        <div class="d-flex justify-content-end">
+                            <!-- Clear Cart Button -->
+                            <form method="POST" action="">
+                                <button type="submit" name="clear_cart" class="btn btn-danger">Clear Cart</button>
+                            </form>
+                        </div>
                     </tbody>
                 </table>
             </div>
@@ -259,22 +285,22 @@ if (!empty($_SESSION['cart'])) {
                 <div class="col-md-4 mb-4">
                     <div class="card d-flex flex-column h-100">
                         <div class="card-body">
-                            <h5 class="card-title">'.$row['menuitem'].'</h5>
-                            <p class="card-text">'.$row['descrip'].'</p>
-                            <p class="card-text">Price: ₱'.$row['price'].'</p>
-                            <form method="POST" action="orderadd.php">
-                                <input type="hidden" name="menuid" value="'.$row['menuid'].'">
-                                <input type="hidden" name="menuitem" value="'.$row['menuitem'].'">
+                            <h5 class="card-title">' . htmlspecialchars($row['menuitem']) . '</h5>
+                            <p class="card-text">' . htmlspecialchars($row['descrip']) . '</p>
+                            <p class="card-text">Price: ₱' . number_format($row['price'], 2) . '</p>
+                            <form method="POST" action="">
+                                <input type="hidden" name="menuid" value="' . htmlspecialchars($row['menuid'], ENT_QUOTES, 'UTF-8') . '">
+                                <input type="hidden" name="menuitem" value="' . htmlspecialchars($row['menuitem'], ENT_QUOTES, 'UTF-8') . '">
                                 <div class="mb-3">
-                                    <label for="quantity'.$row['menuid'].'" class="form-label">Quantity</label>
-                                    <input type="number" name="quantity" id="quantity'.$row['menuid'].'" class="form-control" min="1" value="1">
+                                    <label for="quantity' . htmlspecialchars($row['menuid'], ENT_QUOTES, 'UTF-8') . '" class="form-label">Quantity</label>
+                                    <input type="number" name="quantity" id="quantity' . htmlspecialchars($row['menuid'], ENT_QUOTES, 'UTF-8') . '" class="form-control" min="1" value="1">
                                 </div>
                                 <button type="submit" name="add_to_cart" class="btn btn-primary">Add to Cart</button>
                             </form>
                         </div>
                     </div>
                 </div>';
-            }
+            }            
             ?>
         </div>
     </div>
