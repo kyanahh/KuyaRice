@@ -19,23 +19,52 @@ if(isset($_SESSION["logged_in"])){
 
 $menuitem = $descrip =  $price = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $menuitem =  ucwords($_POST["menuitem"]);
-    $descrip =  ucwords($_POST["descrip"]);
+if (isset($_GET["menuid"])) {
+    $menuid = $_GET["menuid"];
+
+    $query = "SELECT * FROM menu WHERE menuid = '$menuid'";
+
+    $res = $connection->query($query);
+
+    if ($res && $res->num_rows > 0) {
+        $row = $res->fetch_assoc();
+
+        $menuid = $row["menuid"];
+        $menuitem = $row["menuitem"];
+        $descrip = $row["descrip"];
+        $price = $row["price"];
+
+    } else {
+        $errorMessage = "Menu Item not found.";
+    }
+} else {
+    $errorMessage = "Menu ID is missing.";
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($menuid)) {
+    $menuitem = $_POST["menuitem"];
+    $descrip = $_POST["descrip"];
     $price = $_POST["price"];
 
-    // Insert the section data into the database
-    $insertQuery = "INSERT INTO menu (menuitem, descrip, price) 
-    VALUES ('$menuitem', '$descrip', $price)";
-    $result = $connection->query($insertQuery);
+    // Base update query
+    $query1 = "UPDATE menu 
+               SET 
+                   menuitem = '$menuitem', 
+                   descrip = '$descrip', 
+                   price = '$price' 
+                WHERE menuid = '$menuid'";
 
-    if (!$result) {
-        $errorMessage = "Invalid query " . $connection->error;
-    } else {
-        $_SESSION['toast_message'] = "Menu Item successfully added";
+    $result = $connection->query($query1);
+
+    if ($result) {
+        // Set a session variable for success
+        $_SESSION['update_success'] = true;
         header("Location: menu.php");
-        exit();
+        exit;
+    } else {
+        $errorMessage1 = "Error updating details";
     }
+    
 }
 
 ?>
@@ -67,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="adminhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
+                            <a class="nav-link" aria-current="page" href="staffhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="users.php"><i class="bi bi-people me-2"></i>Users</a>
@@ -80,9 +109,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="userlogs.php"><i class="bi bi-person-lines-fill me-2"></i>User Logs</a>
                         </li>
                     </ul>
                     <div class="dropup py-sm-4 py-1 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
@@ -104,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
      <!-- MAIN -->
     <div class="container my-4 pt-3 d-flex justify-content-center">
         <div class="card shadow p-3 col-sm-6">
-            <h4 class="text-center mb-3 fw-bold">Add New Menu Item</h4>
+            <h4 class="text-center mb-3 fw-bold">Edit Menu Item</h4>
             <form method="POST" action="<?php htmlspecialchars("SELF_PHP"); ?>">
                 <div class="row g-2 mb-2">
                     <div class="col">
@@ -123,7 +149,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
                 <div class="text-center">
-                    <button type="submit" class="btn btn-dark btn-sm px-5 py-2">Add Menu</button>
+                    <button type="submit" class="btn btn-dark btn-sm px-5 py-2">Save</button>
                     <a href="menu.php" class="btn btn-danger btn-sm px-5 py-2">Cancel</a>
                 </div>
             </form>

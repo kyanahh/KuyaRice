@@ -17,7 +17,7 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
-$menuitem = $descrip =  $price = $available = "";
+$menuitem = $descrip =  $price = "";
 
 if (isset($_GET["menuid"])) {
     $menuid = $_GET["menuid"];
@@ -33,7 +33,6 @@ if (isset($_GET["menuid"])) {
         $menuitem = $row["menuitem"];
         $descrip = $row["descrip"];
         $price = $row["price"];
-        $available = $row["available"];
 
     } else {
         $errorMessage = "Menu Item not found.";
@@ -46,15 +45,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($menuid)) {
     $menuitem = $_POST["menuitem"];
     $descrip = $_POST["descrip"];
     $price = $_POST["price"];
-    $available = $_POST["available"];
 
     // Base update query
     $query1 = "UPDATE menu 
                SET 
                    menuitem = '$menuitem', 
                    descrip = '$descrip', 
-                   price = '$price', 
-                   available = '$available'
+                   price = '$price' 
                 WHERE menuid = '$menuid'";
 
     $result = $connection->query($query1);
@@ -149,17 +146,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($menuid)) {
                     <textarea class="form-control" id="descrip" rows="3"  name="descrip" value="<?php echo $descrip; ?>" required><?php echo $descrip; ?></textarea>
                 </div>
                 <div class="row g-2 mb-2">
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <label for="price" class="form-label small">Price</label>
                         <input type="number" class="form-control form-control-sm" id="price" name="price" value="<?php echo $price; ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="available" class="form-label small">Availability</label>
-                        <select class="form-select form-select-sm" id="available" name="available" required>
-                            <option selected disabled>Select an option</option>
-                            <option value="Available" <?php echo ($available === "Available") ? "selected" : ""; ?>>Available</option>
-                            <option value="Out of Stock" <?php echo ($available === "Out of Stock") ? "selected" : ""; ?>>Out of Stock</option>
-                        </select>
                     </div>
                 </div>
                 <div class="text-center">

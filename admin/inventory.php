@@ -119,7 +119,6 @@
                                         <th scope="col">Remarks</th>
                                         <th scope="col">Transaction Date</th>
                                         <th scope="col">Staff ID</th>
-                                        <th scope="col" class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody class="table-group-divider">
@@ -138,16 +137,11 @@
                                                 echo '<td>' . $row['remarks'] . '</td>';
                                                 echo '<td>' . $row['transaction_date'] . '</td>';
                                                 echo '<td>' . $row['staffid'] . '</td>';
-                                                echo '<td>';
-                                                echo '<div class="d-flex justify-content-center gap-2">';
-                                                echo '<button class="btn btn-sm btn-danger" onclick="deleteInventory(' . $row['inventoryid'] . ')">Delete</button>';
-                                                echo '</div>';
-                                                echo '</td>';
                                                 echo '</tr>';
                                                 $count++; 
                                             }
                                         } else {
-                                            echo '<tr><td colspan="9" class="text-center">No inventory item found.</td></tr>';
+                                            echo '<tr><td colspan="9" class="text-center">No inventory found.</td></tr>';
                                         }
                                     ?>
                                 </tbody>
@@ -216,40 +210,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
                 <div class="toast-body">
-                    Inventory item deleted successfully.
-                </div>
-            </div>
-        </div>
-
-        <!-- Delete Confirmation Modal -->
-        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to delete this inventory item?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-                </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Toast Notification -->
-        <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container">
-            <div id="updateToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <strong class="me-auto">Notification</strong>
-                    <small>Just now</small>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    Inventory updated successfully.
+                    Inventory deleted successfully.
                 </div>
             </div>
         </div>
@@ -279,45 +240,6 @@
                     }
                 });
             }
-
-            //---------------------------Delete Inventory---------------------------//
-            let inventoryIdToDelete = null;
-
-            function deleteInventory(inventoryid) {
-                menuIdToDelete = inventoryid; // Store the user ID to delete
-                const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-                deleteModal.show(); // Show the modal
-            }
-
-            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-                if (inventoryIdToDelete) {
-                    $.ajax({
-                        url: 'delete_inventory.php',
-                        method: 'POST',
-                        data: { inventoryid: inventoryIdToDelete },
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.success) {
-                                showDeleteToast();
-                                setTimeout(function () {
-                                    location.reload();
-                                }, 3000); // Wait 3 seconds before refreshing
-                            } else {
-                                alert(response.error);
-                            }
-                        },
-                        error: function () {
-                            alert('Error deleting inventory');
-                        }
-                    });
-                }
-            });
-
-            function showDeleteToast() {
-                const deleteToast = new bootstrap.Toast(document.getElementById('deleteToast'));
-                deleteToast.show();
-            }
-
 
         </script>
 

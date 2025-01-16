@@ -17,6 +17,9 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
+$orderid = isset($_GET['orderid']) ? intval($_GET['orderid']) : 0;
+
+
 ?>
 
 <!DOCTYPE html>
@@ -83,66 +86,48 @@ if(isset($_SESSION["logged_in"])){
         <div class="card shadow-lg p-4 mt-5" style="height:400px;">
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fs-5 m-0">Orders</h2>
+                <h2 class="fs-5 m-0">Order Details</h2>
                 <div class="d-flex">
-                    <input type="text" class="form-control me-2" id="searchOrderInput" placeholder="Search" aria-label="Search" oninput="searchOrder()">
+                    <a href="orders.php" class="btn btn-dark text-white ms-3"><i class="bi bi-arrow-left"></i></a>
                 </div>
             </div>
 
-            <!-- Order Table -->
+            <!-- Order Detail Table -->
             <div class="card">
                 <div class="card-body p-0">
                     <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
-                        <table id="order-table" class="table table-borderless table-hover align-middle mb-0">
+                        <table id="menu-table" class="table table-borderless table-hover align-middle mb-0">
                             <thead class="table-light sticky-top">
                                 <tr>
-                                    <th scope="col">Order #</th>
-                                    <th scope="col">Order Status</th>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Menu Item</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Price</th>
                                     <th scope="col">Total Amount</th>
-                                    <th scope="col">Order Created</th>
-                                    <th scope="col" class="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="table-group-divider">
                                 <?php
                                     // Query the database to fetch user data
-                                    $result = $connection->query("SELECT * FROM orders WHERE userid = '$textaccount' ORDER BY orderid DESC");
-
+                                    $result = $connection->query("SELECT order_details.*, menu.menuitem 
+                                    FROM order_details 
+                                    LEFT JOIN menu 
+                                    ON order_details.menuid = menu.menuid 
+                                    WHERE order_details.orderid = $orderid");
                                     if ($result->num_rows > 0) {
+                                        $count = 1; 
                                         while ($row = $result->fetch_assoc()) {
                                             echo '<tr>';
-                                            echo '<td>' . $row['orderid'] . '</td>';
-                                            echo '<td>' . $row['orderstatus'] . '</td>';
+                                            echo '<td>' . $count . '</td>';
+                                            echo '<td>' . $row['menuitem'] . '</td>';
+                                            echo '<td>' . $row['quantity'] . '</td>';
+                                            echo '<td>' . $row['price'] . '</td>';
                                             echo '<td>' . $row['total_amount'] . '</td>';
-                                            echo '<td>' . $row['ordercreated'] . '</td>';
-                                            echo '<td>';
-                                            echo '<div class="d-flex justify-content-center gap-2">';
-
-                                            // Confirmed
-                                            if ($row['orderstatus'] == 'Confirmed') {
-                                                echo '<button class="btn btn-sm btn-success" onclick="addOrder(' . $row['orderid'] . ')">Add Order</button>';
-                                            }
-
-                                            // In The Kitchen
-                                            if ($row['orderstatus'] == 'In The Kitchen') {
-                                                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
-                                            }
-
-                                            // Currently Serving
-                                            if ($row['orderstatus'] == 'Currently Serving') {
-                                                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
-                                            }
-
-                                            // Done
-                                            if ($row['orderstatus'] == 'Done') {
-                                                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
-                                            }
-                                            echo '</div>';
-                                            echo '</td>';
                                             echo '</tr>';
+                                            $count++; 
                                         }
                                     } else {
-                                        echo '<tr><td colspan="9" class="text-center">No order record found.</td></tr>';
+                                        echo '<tr><td colspan="9" class="text-center">No order detail found.</td></tr>';
                                     }
                                 ?>
                             </tbody>
@@ -150,12 +135,13 @@ if(isset($_SESSION["logged_in"])){
                     </div>
                 </div>
             </div>
-            <!-- End Order Table -->
+            <!-- End Order Detail Table -->
 
             <!-- Search Results -->
             <div id="search-results" class="mt-4"></div>
         </div>
     </div>
+      
       
     <!-- FOOTER -->
       <footer class="bg-black d-flex align-items-center mt-5" style="height: 200px;">
@@ -211,37 +197,6 @@ if(isset($_SESSION["logged_in"])){
         const loginToast = new bootstrap.Toast(document.getElementById('loginToast'));
         loginToast.show();
         <?php endif; ?>
-
-        //---------------------------Search Order Results---------------------------//
-        function searchOrder() {
-            const query = document.getElementById("searchOrderInput").value;
-
-            // Make an AJAX request to fetch search results
-            $.ajax({
-                url: 'search_order.php', // Replace with the actual URL to your search script
-                method: 'POST',
-                data: { query: query },
-                success: function(data) {
-                    // Update the user-table with the search results
-                    $('#order-table tbody').html(data);
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error during search request:", error);
-                }
-            });
-        }
-
-        //---------------------------View Order---------------------------//
-        function View(orderid) {
-            window.location.href = `orderview.php?orderid=${orderid}`;
-        }
-
-        //---------------------------Add Order---------------------------//
-        function addOrder(orderid) {
-            window.location = "ordernow.php?orderid=" + orderid;
-        }
-
-
     </script>
 
 </body>

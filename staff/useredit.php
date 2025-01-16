@@ -17,25 +17,70 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
-$menuitem = $descrip =  $price = "";
+$firstname = $lastname = $phone = $gender = $email = $homeaddress = $password = $errorMessage = $successMessage = $newpassword = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $menuitem =  ucwords($_POST["menuitem"]);
-    $descrip =  ucwords($_POST["descrip"]);
-    $price = $_POST["price"];
+if (isset($_GET["userid"])) {
+    $userid = $_GET["userid"];
 
-    // Insert the section data into the database
-    $insertQuery = "INSERT INTO menu (menuitem, descrip, price) 
-    VALUES ('$menuitem', '$descrip', $price)";
-    $result = $connection->query($insertQuery);
+    $query = "SELECT * FROM users WHERE userid = '$userid'";
 
-    if (!$result) {
-        $errorMessage = "Invalid query " . $connection->error;
+    $res = $connection->query($query);
+
+    if ($res && $res->num_rows > 0) {
+        $row = $res->fetch_assoc();
+
+        $userid = $row["userid"];
+        $firstname = $row["firstname"];
+        $lastname = $row["lastname"];
+        $gender = $row["gender"];
+        $phone = $row["phone"];
+        $homeaddress = $row["homeaddress"];
+        $email = $row["email"];
+
     } else {
-        $_SESSION['toast_message'] = "Menu Item successfully added";
-        header("Location: menu.php");
-        exit();
+        $errorMessage = "User not found.";
     }
+} else {
+    $errorMessage = "User ID is missing.";
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($userid)) {
+    $firstname = $_POST["firstname"];
+    $lastname = $_POST["lastname"];
+    $gender = $_POST["gender"];
+    $phone = $_POST["phone"];
+    $homeaddress = $_POST["homeaddress"];
+    $email = $_POST["email"];
+    $newpassword = $_POST["newpassword"];
+
+    // Base update query
+    $query1 = "UPDATE users 
+               SET 
+                   firstname = '$firstname', 
+                   lastname = '$lastname', 
+                   gender = '$gender', 
+                   phone = '$phone', 
+                   homeaddress = '$homeaddress', 
+                   email = '$email'";
+
+    // Append password to query only if it's provided
+    if (!empty($newpassword)) {
+        $query1 .= ", password = '$newpassword'";
+    }
+
+    $query1 .= " WHERE userid = '$userid'";
+
+    $result = $connection->query($query1);
+
+    if ($result) {
+        // Set a session variable for success
+        $_SESSION['update_success'] = true;
+        header("Location: users.php");
+        exit;
+    } else {
+        $errorMessage1 = "Error updating details";
+    }
+    
 }
 
 ?>
@@ -67,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="adminhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
+                            <a class="nav-link" aria-current="page" href="staffhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="users.php"><i class="bi bi-people me-2"></i>Users</a>
@@ -80,9 +125,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="userlogs.php"><i class="bi bi-person-lines-fill me-2"></i>User Logs</a>
                         </li>
                     </ul>
                     <div class="dropup py-sm-4 py-1 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
@@ -101,30 +143,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </nav>
 
-     <!-- MAIN -->
-    <div class="container my-4 pt-3 d-flex justify-content-center">
-        <div class="card shadow p-3 col-sm-6">
-            <h4 class="text-center mb-3 fw-bold">Add New Menu Item</h4>
+    <!-- MAIN -->
+    <div class="container my-4 pt-3">
+        <div class="card shadow p-3">
+            <h4 class="text-center mb-3 fw-bold">Edit User</h4>
             <form method="POST" action="<?php htmlspecialchars("SELF_PHP"); ?>">
                 <div class="row g-2 mb-2">
-                    <div class="col">
-                        <label for="menuitem" class="form-label small">Menu Item</label>
-                        <input type="text" class="form-control form-control-sm" id="menuitem" name="menuitem" value="<?php echo $menuitem; ?>" required>
+                    <div class="col-md-6">
+                        <label for="firstname" class="form-label small">First Name</label>
+                        <input type="text" class="form-control form-control-sm" id="firstname" name="firstname" value="<?php echo $firstname; ?>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="lastname" class="form-label small">Last Name</label>
+                        <input type="text" class="form-control form-control-sm" id="lastname" name="lastname" value="<?php echo $lastname; ?>" required>
                     </div>
                 </div>
                 <div class="mb-2">
-                    <label for="descrip" class="form-label small">Description</label>
-                    <textarea class="form-control" id="descrip" rows="3"  name="descrip" value="<?php echo $descrip; ?>" required><?php echo $descrip; ?></textarea>
+                    <label for="homeaddress" class="form-label small">Home Address</label>
+                    <input type="text" class="form-control form-control-sm" id="homeaddress" name="homeaddress" value="<?php echo $homeaddress; ?>" required>
                 </div>
                 <div class="row g-2 mb-2">
-                    <div class="col-md-12">
-                        <label for="price" class="form-label small">Price</label>
-                        <input type="number" class="form-control form-control-sm" id="price" name="price" value="<?php echo $price; ?>" required>
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label small">Phone</label>
+                        <input type="tel" class="form-control form-control-sm" id="phone" name="phone" value="<?php echo $phone; ?>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="gender" class="form-label small">Gender</label>
+                        <select class="form-select form-select-sm" id="gender" name="gender" required>
+                            <option value="Male" <?php echo ($gender === "Male") ? "selected" : ""; ?>>Male</option>
+                            <option value="Female" <?php echo ($gender === "Female") ? "selected" : ""; ?>>Female</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label for="email" class="form-label small">Email</label>
+                        <input type="email" class="form-control form-control-sm" id="email" name="email" value="<?php echo $email; ?>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="newpassword" class="form-label small">New Password</label>
+                        <input type="password" class="form-control form-control-sm" id="newpassword" name="newpassword" value="<?php echo $newpassword; ?>">
                     </div>
                 </div>
                 <div class="text-center">
-                    <button type="submit" class="btn btn-dark btn-sm px-5 py-2">Add Menu</button>
-                    <a href="menu.php" class="btn btn-danger btn-sm px-5 py-2">Cancel</a>
+                    <button type="submit" class="btn btn-dark btn-sm px-5 py-2">Save</button>
+                    <a href="users.php" class="btn btn-danger btn-sm px-5 py-2">Cancel</a>
                 </div>
             </form>
         </div>

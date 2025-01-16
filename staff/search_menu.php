@@ -31,7 +31,6 @@ if (isset($_POST['query'])) {
             echo '<td>';
             echo '<div class="d-flex justify-content-center gap-2">';
             echo '<button class="btn btn-sm btn-primary" onclick="editMenu(' . $row['menuid'] . ')">Edit</button>';
-            echo '<button class="btn btn-sm btn-danger" onclick="deleteMenu(' . $row['menuid'] . ')">Delete</button>';
             echo '</div>';
             echo '</td>';
             echo '</tr>';

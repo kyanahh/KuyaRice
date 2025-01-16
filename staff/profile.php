@@ -10,6 +10,12 @@ if(isset($_SESSION["logged_in"])){
         $fname = $_SESSION["firstname"];
         $lname = $_SESSION["lastname"];
         $useremail = $_SESSION["email"];
+        $firstname = $_SESSION["firstname"];
+        $lastname = $_SESSION["lastname"];
+        $gender = $_SESSION["gender"];
+        $phone = $_SESSION["phone"];
+        $email = $_SESSION["email"];
+        $homeaddress = $_SESSION["homeaddress"];
     }else{
         $textaccount = "Account";
     }
@@ -17,25 +23,29 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
-$menuitem = $descrip =  $price = "";
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $menuitem =  ucwords($_POST["menuitem"]);
-    $descrip =  ucwords($_POST["descrip"]);
-    $price = $_POST["price"];
+    $usersid = $_SESSION["userid"];
+    $phone = $_POST["phone"];
+    $newEmail = $_POST["email"];
+    $homeaddress = $_POST["homeaddress"];
 
-    // Insert the section data into the database
-    $insertQuery = "INSERT INTO menu (menuitem, descrip, price) 
-    VALUES ('$menuitem', '$descrip', $price)";
-    $result = $connection->query($insertQuery);
+    $updateQuery = "UPDATE users SET email = ?, phone = ?, homeaddress = ? WHERE userid = ?";
+    $stmt = $connection->prepare($updateQuery);
+    $stmt->bind_param("sssi", $newEmail, $phone, $homeaddress, $usersid);
+    $stmt->execute();
 
-    if (!$result) {
-        $errorMessage = "Invalid query " . $connection->error;
-    } else {
-        $_SESSION['toast_message'] = "Menu Item successfully added";
-        header("Location: menu.php");
-        exit();
+    // Refresh session variables with updated user data
+    $result = $connection->query("SELECT * FROM users WHERE email = '$newEmail'");
+    if ($result->num_rows > 0) {
+        $updatedUser = $result->fetch_assoc();
+        $_SESSION["phone"] = $updatedUser["phone"];
+        $_SESSION["email"] = $updatedUser["email"];
+        $_SESSION["homeaddress"] = $updatedUser["homeaddress"];
     }
+
+    $_SESSION["successMessage"] = "Profile updated successfully";
+    header("Location: profile.php");
+    exit();
 }
 
 ?>
@@ -48,10 +58,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Tapsihan ni Kuya Rice</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+        .dropdown:hover .dropdown-toggle {
+            background-color: #000000;
+        }
+    </style>
 </head>
-<body>
+<body">
 
-    <nav class="navbar navbar-dark bg-black py-3">
+    <nav class="navbar navbar-dark bg-black py-3 fixed-top">
         <div class="container-fluid">
             <div class="d-flex align-items-center">
                 <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBlackNavbar" aria-controls="offcanvasBlackNavbar" aria-label="Toggle navigation">
@@ -67,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="adminhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
+                            <a class="nav-link" aria-current="page" href="staffhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="users.php"><i class="bi bi-people me-2"></i>Users</a>
@@ -80,9 +98,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="userlogs.php"><i class="bi bi-person-lines-fill me-2"></i>User Logs</a>
                         </li>
                     </ul>
                     <div class="dropup py-sm-4 py-1 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
@@ -101,31 +116,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </nav>
 
-     <!-- MAIN -->
-    <div class="container my-4 pt-3 d-flex justify-content-center">
-        <div class="card shadow p-3 col-sm-6">
-            <h4 class="text-center mb-3 fw-bold">Add New Menu Item</h4>
+    <!-- MAIN -->
+    <div class="container my-5 d-flex justify-content-center pt-5">
+        <div class="card col-sm-6 mt-4 shadow">
+            <div class="card-header bg-white py-4 fw-bold h4">
+                My Profile
+            </div>
             <form method="POST" action="<?php htmlspecialchars("SELF_PHP"); ?>">
-                <div class="row g-2 mb-2">
+            <div class="card-body">
+                <div class="row">
                     <div class="col">
-                        <label for="menuitem" class="form-label small">Menu Item</label>
-                        <input type="text" class="form-control form-control-sm" id="menuitem" name="menuitem" value="<?php echo $menuitem; ?>" required>
+                        <label for="firstname" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstname" name="firstname" value="<?php echo $firstname; ?>" placeholder="First Name" disabled>
+                    </div>
+                    <div class="col">
+                        <label for="lastname" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastname" name="lastname" value="<?php echo $lastname; ?>" placeholder="Last Name" disabled>
                     </div>
                 </div>
-                <div class="mb-2">
-                    <label for="descrip" class="form-label small">Description</label>
-                    <textarea class="form-control" id="descrip" rows="3"  name="descrip" value="<?php echo $descrip; ?>" required><?php echo $descrip; ?></textarea>
-                </div>
-                <div class="row g-2 mb-2">
-                    <div class="col-md-12">
-                        <label for="price" class="form-label small">Price</label>
-                        <input type="number" class="form-control form-control-sm" id="price" name="price" value="<?php echo $price; ?>" required>
+                <div class="row mt-3">
+                    <div class="col">
+                        <label for="gender" class="form-label">Gender</label>
+                        <input type="text" class="form-control" id="gender" name="gender" value="<?php echo $gender; ?>" placeholder="Gender" disabled>
+                    </div>
+                    <div class="col">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $phone; ?>" placeholder="Phone Number" required>
                     </div>
                 </div>
-                <div class="text-center">
-                    <button type="submit" class="btn btn-dark btn-sm px-5 py-2">Add Menu</button>
-                    <a href="menu.php" class="btn btn-danger btn-sm px-5 py-2">Cancel</a>
+                <div class="row mt-3">
+                    <div class="col">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="text" class="form-control" id="email" name="email" value="<?php echo $email; ?>" placeholder="Email" required>
+                    </div>
                 </div>
+                <div class="row mt-3">
+                    <div class="col">
+                        <label for="homeaddress" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="homeaddress" name="homeaddress" value="<?php echo $homeaddress; ?>" placeholder="Home Address" required>
+                    </div>
+                </div>
+                <div class="row">
+                        <div class="col d-grid gap-2">
+                        <?php
+                            if (!empty($successMessage)) {
+                                echo "<p class='text-danger'>$successMessage</p>";
+                            }
+                        ?>
+                            <button type="submit" class="btn btn-dark mt-3 fw-bold">Save</button>
+                            <a href="settings.php" class="btn btn-warning fw-bold">Change Password</a>
+                        </div>
+                    </div>
+            </div>
             </form>
         </div>
     </div>
@@ -175,11 +217,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </footer>
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <?php 
+                    if (isset($_SESSION['successMessage'])) {
+                        echo $_SESSION['successMessage'];
+                        unset($_SESSION['successMessage']); // Clear the message after displaying
+                    }
+                    ?>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script -->  
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var successToast = document.getElementById('successToast');
+            if (successToast) {
+                var toast = new bootstrap.Toast(successToast);
+                toast.show();
+            }
+        });
+    </script>
 
 </body>
 </html>

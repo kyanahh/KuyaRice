@@ -46,7 +46,7 @@ if(isset($_SESSION["logged_in"])){
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="adminhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
+                            <a class="nav-link" aria-current="page" href="staffhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="users.php"><i class="bi bi-people me-2"></i>Users</a>
@@ -59,9 +59,6 @@ if(isset($_SESSION["logged_in"])){
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="userlogs.php"><i class="bi bi-person-lines-fill me-2"></i>User Logs</a>
                         </li>
                     </ul>
                     <div class="dropup py-sm-4 py-1 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
@@ -158,7 +155,6 @@ if(isset($_SESSION["logged_in"])){
                                                 echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
                                             }
 
-                                            echo '<button class="btn btn-sm btn-danger" onclick="deleteOrder(' . $row['orderid'] . ')">Delete</button>';
                                             echo '</div>';
                                             echo '</td>';
                                             echo '</tr>';
@@ -224,38 +220,6 @@ if(isset($_SESSION["logged_in"])){
             </div>
         </div>
     </footer>
-
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container">
-        <div id="deleteToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto">Notification</strong>
-                <small>Just now</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Order details deleted successfully.
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this order record?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-            </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container">
@@ -439,44 +403,6 @@ if(isset($_SESSION["logged_in"])){
                     console.error("Error during search request:", error);
                 }
             });
-        }
-
-        //---------------------------Delete Order---------------------------//
-        let orderIdToDelete = null;
-
-        function deleteOrder(orderid) {
-            orderIdToDelete = orderid; // Store the user ID to delete
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show(); // Show the modal
-        }
-
-        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-            if (orderIdToDelete) {
-                $.ajax({
-                    url: 'delete_order.php',
-                    method: 'POST',
-                    data: { orderid: orderIdToDelete },
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.success) {
-                            showDeleteToast();
-                            setTimeout(function () {
-                                location.reload();
-                            }, 3000); // Wait 3 seconds before refreshing
-                        } else {
-                            alert(response.error);
-                        }
-                    },
-                    error: function () {
-                        alert('Error deleting order details');
-                    }
-                });
-            }
-        });
-
-        function showDeleteToast() {
-            const deleteToast = new bootstrap.Toast(document.getElementById('deleteToast'));
-            deleteToast.show();
         }
 
         //---------------------------Confirm Order---------------------------//

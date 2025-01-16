@@ -60,7 +60,7 @@ if(isset($_SESSION["logged_in"])){
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="adminhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
+                            <a class="nav-link" aria-current="page" href="staffhome.php"><i class="bi bi-bar-chart me-2"></i>Dashboard</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="users.php"><i class="bi bi-people me-2"></i>Users</a>
@@ -72,10 +72,10 @@ if(isset($_SESSION["logged_in"])){
                             <a class="nav-link" href="orders.php"><i class="bi bi-cart-check me-2"></i>Orders</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="inventory.php"><i class="bi bi-box-seam me-2"></i>Inventory</a>
+                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Order Details</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="userlogs.php"><i class="bi bi-person-lines-fill me-2"></i>User Logs</a>
+                            <a class="nav-link" href="inventory.php"><i class="bi bi-person-lines-fill me-2"></i>Inventory</a>
                         </li>
                     </ul>
                     <div class="dropup py-sm-4 py-1 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
@@ -99,10 +99,9 @@ if(isset($_SESSION["logged_in"])){
         <div class="card shadow-lg p-4 mt-5" style="height:400px;">
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fs-5 m-0">Menu</h2>
+                <h2 class="fs-5 m-0">Users</h2>
                 <div class="d-flex">
-                    <input type="text" class="form-control me-2" id="searchMenuInput" placeholder="Search" aria-label="Search" oninput="searchMenu()">
-                    <a href="menuadd.php" class="btn btn-dark"><i class="bi bi-plus-lg text-white"></i></a>
+                    <input type="text" class="form-control me-2" id="searchUserInput" placeholder="Search" aria-label="Search" oninput="searchUsers()">
                 </div>
             </div>
 
@@ -110,52 +109,49 @@ if(isset($_SESSION["logged_in"])){
             <div class="card">
                 <div class="card-body p-0">
                     <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
-                        <table id="menu-table" class="table table-bordered table-hover align-middle mb-0">
+                        <table id="user-table" class="table table-bordered table-hover align-middle mb-0">
                             <thead class="table-light sticky-top">
                                 <tr>
                                     <th scope="col">#</th>
-                                    <th scope="col">Image</th>
-                                    <th scope="col">Menu Item</th>
-                                    <th scope="col">Description</th>
-                                    <th scope="col">Price</th>
+                                    <th scope="col">User ID</th>
+                                    <th scope="col">First</th>
+                                    <th scope="col">Last</th>
+                                    <th scope="col">Gender</th>
+                                    <th scope="col">Phone</th>
+                                    <th scope="col">Address</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">User Type</th>
                                     <th scope="col" class="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="table-group-divider">
                                 <?php
                                     // Query the database to fetch user data
-                                    $result = $connection->query("SELECT * FROM menu ORDER BY menuid DESC");
+                                    $result = $connection->query("SELECT * FROM users ORDER BY userid DESC");
+
                                     if ($result->num_rows > 0) {
                                         $count = 1; 
                                         while ($row = $result->fetch_assoc()) {
-                                            // Check if there's a menu image (BLOB)
-                                            $menupic = $row['menupic'];
-
                                             echo '<tr>';
                                             echo '<td>' . $count . '</td>';
-                                            // Display the image in the new column
-                                            echo '<td class="text-center">';
-                                            if ($menupic) {
-                                                // Create a custom image display with a data URL
-                                                echo '<img src="data:image/jpeg;base64,' . base64_encode($menupic) . '" alt="Menu Image" style="width: 50px; height: 50px; object-fit: cover;">';
-                                            } else {
-                                                echo 'No image';
-                                            }
-                                            echo '</td>';
-                                            echo '<td>' . $row['menuitem'] . '</td>';
-                                            echo '<td>' . $row['descrip'] . '</td>';
-                                            echo '<td>' . $row['price'] . '</td>';
+                                            echo '<td>' . $row['userid'] . '</td>';
+                                            echo '<td>' . $row['firstname'] . '</td>';
+                                            echo '<td>' . $row['lastname'] . '</td>';
+                                            echo '<td>' . $row['gender'] . '</td>';
+                                            echo '<td>' . $row['phone'] . '</td>';
+                                            echo '<td>' . $row['homeaddress'] . '</td>';
+                                            echo '<td>' . $row['email'] . '</td>';
+                                            echo '<td>' . $row['usertype'] . '</td>';
                                             echo '<td>';
                                             echo '<div class="d-flex justify-content-center gap-2">';
-                                            echo '<button class="btn btn-sm btn-primary" onclick="editMenu(' . $row['menuid'] . ')">Edit</button>';
-                                            echo '<button class="btn btn-sm btn-danger" onclick="deleteMenu(' . $row['menuid'] . ')">Delete</button>';
+                                            echo '<button class="btn btn-sm btn-primary" onclick="editUser(' . $row['userid'] . ')">Edit</button>';
                                             echo '</div>';
                                             echo '</td>';
                                             echo '</tr>';
                                             $count++; 
                                         }
                                     } else {
-                                        echo '<tr><td colspan="9" class="text-center">No menu item found.</td></tr>';
+                                        echo '<tr><td colspan="9" class="text-center">No users found.</td></tr>';
                                     }
                                 ?>
                             </tbody>
@@ -216,38 +212,6 @@ if(isset($_SESSION["logged_in"])){
         </div>
     </footer>
 
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container">
-        <div id="deleteToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto">Notification</strong>
-                <small>Just now</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Menu Item deleted successfully.
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this menu item?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-            </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container">
         <div id="updateToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -257,7 +221,7 @@ if(isset($_SESSION["logged_in"])){
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body">
-                Menu updated successfully.
+                Information updated successfully.
             </div>
         </div>
     </div>
@@ -269,18 +233,18 @@ if(isset($_SESSION["logged_in"])){
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        //---------------------------Search Menu Results---------------------------//
-        function searchMenu() {
-            const query = document.getElementById("searchMenuInput").value;
+        //---------------------------Search Users Results---------------------------//
+        function searchUsers() {
+            const query = document.getElementById("searchUserInput").value;
 
             // Make an AJAX request to fetch search results
             $.ajax({
-                url: 'search_menu.php', // Replace with the actual URL to your search script
+                url: 'search_users.php', // Replace with the actual URL to your search script
                 method: 'POST',
                 data: { query: query },
                 success: function(data) {
                     // Update the user-table with the search results
-                    $('#menu-table tbody').html(data);
+                    $('#user-table tbody').html(data);
                 },
                 error: function(xhr, status, error) {
                     console.error("Error during search request:", error);
@@ -288,49 +252,10 @@ if(isset($_SESSION["logged_in"])){
             });
         }
 
-        //---------------------------Edit Menu---------------------------//
-        function editMenu(menuid) {
-            window.location = "menuedit.php?menuid=" + menuid;
+        //---------------------------Edit Users---------------------------//
+        function editUser(userid) {
+            window.location = "useredit.php?userid=" + userid;
         }
-
-        //---------------------------Delete Menu---------------------------//
-        let menuIdToDelete = null;
-
-        function deleteMenu(menuid) {
-            menuIdToDelete = menuid; // Store the user ID to delete
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show(); // Show the modal
-        }
-
-        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-            if (menuIdToDelete) {
-                $.ajax({
-                    url: 'delete_menu.php',
-                    method: 'POST',
-                    data: { menuid: menuIdToDelete },
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.success) {
-                            showDeleteToast();
-                            setTimeout(function () {
-                                location.reload();
-                            }, 3000); // Wait 3 seconds before refreshing
-                        } else {
-                            alert(response.error);
-                        }
-                    },
-                    error: function () {
-                        alert('Error deleting user');
-                    }
-                });
-            }
-        });
-
-        function showDeleteToast() {
-            const deleteToast = new bootstrap.Toast(document.getElementById('deleteToast'));
-            deleteToast.show();
-        }
-
 
     </script>
 
