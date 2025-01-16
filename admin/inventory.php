@@ -118,6 +118,7 @@
                                         <th scope="col">Quantity</th>
                                         <th scope="col">Remarks</th>
                                         <th scope="col">Transaction Date</th>
+                                        <th scope="col">Staff ID</th>
                                         <th scope="col" class="text-center">Action</th>
                                     </tr>
                                 </thead>
@@ -136,6 +137,7 @@
                                                 echo '<td>' . $row['quantity'] . '</td>';
                                                 echo '<td>' . $row['remarks'] . '</td>';
                                                 echo '<td>' . $row['transaction_date'] . '</td>';
+                                                echo '<td>' . $row['staffid'] . '</td>';
                                                 echo '<td>';
                                                 echo '<div class="d-flex justify-content-center gap-2">';
                                                 echo '<button class="btn btn-sm btn-danger" onclick="deleteInventory(' . $row['inventoryid'] . ')">Delete</button>';
