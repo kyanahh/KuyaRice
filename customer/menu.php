@@ -23,31 +23,6 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usersid = $_SESSION["userid"];
-    $phone = $_POST["phone"];
-    $newEmail = $_POST["email"];
-    $homeaddress = $_POST["homeaddress"];
-
-    $updateQuery = "UPDATE users SET email = ?, phone = ?, homeaddress = ? WHERE userid = ?";
-    $stmt = $connection->prepare($updateQuery);
-    $stmt->bind_param("sssi", $newEmail, $phone, $homeaddress, $usersid);
-    $stmt->execute();
-
-    // Refresh session variables with updated user data
-    $result = $connection->query("SELECT * FROM users WHERE email = '$newEmail'");
-    if ($result->num_rows > 0) {
-        $updatedUser = $result->fetch_assoc();
-        $_SESSION["phone"] = $updatedUser["phone"];
-        $_SESSION["email"] = $updatedUser["email"];
-        $_SESSION["homeaddress"] = $updatedUser["homeaddress"];
-    }
-
-    $_SESSION["successMessage"] = "Profile updated successfully";
-    header("Location: account.php");
-    exit();
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -220,7 +195,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 const orderType = $('#orderTypeInput').val();
 
                 $.ajax({
-                    url: 'orderadding.php',
+                    url: 'orderadds.php',
                     type: 'POST',
                     data: {
                         userid: orderType,
@@ -229,8 +204,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     success: function (response) {
                         if (response.success) {
                             showToast(response.message, "bg-success");
+
+                            // Redirect to ordernow.php with the latest orderid
+                            const orderid = response.orderid;
                             setTimeout(() => {
-                                window.location.href = 'orders.php';
+                                window.location.href = 'ordernow.php?orderid=' + orderid;
                             }, 1500); // Redirect after 1.5 seconds to allow toast visibility
                         } else {
                             showToast(response.message, "bg-danger");

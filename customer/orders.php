@@ -118,25 +118,16 @@ if(isset($_SESSION["logged_in"])){
                                             echo '<td>';
                                             echo '<div class="d-flex justify-content-center gap-2">';
 
-                                            // Confirmed
-                                            if ($row['orderstatus'] == 'Confirmed') {
+                                            // If total_amount is not set (i.e., it's null or 0), show the "Add Order" button
+                                            if ($row['orderstatus'] == 'Confirmed' && (empty($row['total_amount']) || $row['total_amount'] == 0)) {
                                                 echo '<button class="btn btn-sm btn-success" onclick="addOrder(' . $row['orderid'] . ')">Add Order</button>';
                                             }
 
-                                            // In The Kitchen
-                                            if ($row['orderstatus'] == 'In The Kitchen') {
+                                            // If total_amount is set (not null or 0), show the "View" button
+                                            if (!empty($row['total_amount']) && $row['total_amount'] != 0) {
                                                 echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
                                             }
 
-                                            // Currently Serving
-                                            if ($row['orderstatus'] == 'Currently Serving') {
-                                                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
-                                            }
-
-                                            // Done
-                                            if ($row['orderstatus'] == 'Done') {
-                                                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
-                                            }
                                             echo '</div>';
                                             echo '</td>';
                                             echo '</tr>';

@@ -17,12 +17,15 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
-if (isset($_SESSION['orderid'])) {
-    $orderid = $_SESSION['orderid'];
-} elseif (isset($_GET['orderid'])) {
+// Check if orderid is set in the URL, if yes, update the session
+if (isset($_GET['orderid'])) {
     $orderid = $_GET['orderid'];
     $_SESSION['orderid'] = $orderid;
+} elseif (isset($_SESSION['orderid'])) {
+    // If not, use the orderid from the session
+    $orderid = $_SESSION['orderid'];
 } else {
+    // Handle the case where no orderid is provided or found
     $_SESSION['error_message'] = 'Order ID is missing!';
     header('Location: orders.php');
     exit;
