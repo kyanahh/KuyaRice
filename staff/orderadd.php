@@ -14,16 +14,21 @@ if(isset($_SESSION["logged_in"])){
 }else{
     $textaccount = "Account";
 }
-if (!isset($_SESSION['orderid'])) {
-    // Generate a new order ID if it doesn't exist in the session
-    $result = $connection->query("INSERT INTO orders (userid, total_amount, orderstatus) VALUES ('$textaccount', 0, 'Pending')");
+
+$currentDateTime = date("Y-m-d H:i:s");
+
+if (!isset($_SESSION['orderid']) && !isset($_GET['orderid'])) {
+    // Generate a new order ID if it doesn't exist in the session or GET parameters
+    $result = $connection->query("INSERT INTO orders (userid, ordercreated, orderstatus, staffid) VALUES ('$textaccount',  $currentDateTime, 'Confirmed', '$textaccount')");
     if ($result) {
         $_SESSION['orderid'] = $connection->insert_id; // Store the generated order ID in the session
     } else {
-        die("Error creating order: " . $connection->error); // Debugging: remove in production
+        die("Error creating order: " . $connection->error);
     }
+} elseif (isset($_GET['orderid'])) {
+    // Set the session order ID from GET parameters if provided
+    $_SESSION['orderid'] = $_GET['orderid'];
 }
-$orderid = $_SESSION['orderid'];
 
 
 // Fetch the order details based on the orderid

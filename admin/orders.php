@@ -796,6 +796,39 @@ if(isset($_SESSION["logged_in"])){
             });
         }
 
+        // Adding an event listener for the Serve Now button
+        document.getElementById('serveButton').addEventListener('click', function() {
+            const orderid = document.getElementById('receiptOrderId').textContent;  // Get the orderid from the receipt
+
+            // Make an AJAX request to update the order status and show the toast
+            $.ajax({
+                url: "orderserves.php",
+                method: "POST",
+                data: { orderid: orderid },
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        // Hide the modal
+                        const serveModal = new bootstrap.Modal(document.getElementById('serveModal'));
+                        serveModal.hide();
+
+                        // Show a toast message indicating that the order is being served
+                        showToast("Order Currently Serving", "bg-success");
+
+                        // Refresh the page after a short delay
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);  // Adjust the delay time as needed
+                    } else {
+                        showToast("Failed to serve the order", "bg-danger");
+                    }
+                },
+                error: function() {
+                    showToast("Error updating order status", "bg-danger");
+                }
+            });
+        });
+
         function printReceipt() {
             const receiptContent = document.getElementById("receiptContent").textContent;
             const printWindow = window.open('', '_blank');
@@ -881,7 +914,7 @@ if(isset($_SESSION["logged_in"])){
                     type: 'POST',
                     data: {
                         userid: orderType,
-                        staffid: <?php echo isset($_SESSION["userid"]) ? $_SESSION["userid"] : 'null'; ?>
+                        staffid: '<?php echo $textaccount; ?>'
                     },
                     success: function (response) {
                         if (response.success) {

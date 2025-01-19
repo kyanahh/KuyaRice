@@ -154,8 +154,9 @@ if(isset($_SESSION["logged_in"])){
                 <div class="modal-body">
                     <form id="addOrderForm">
                         <div class="mb-3">
-                            <input type="hidden" class="form-control" id="orderTypeInput" name="userid" value="<?php echo $textaccount; ?>">
-                            Are you sure you want to create an order?
+                        <input type="hidden" class="form-control" id="orderTypeInput" name="userid" 
+                        value="<?php echo isset($_SESSION["userid"]) ? $_SESSION["userid"] : ''; ?>">
+                        Are you sure you want to create an order?
                         </div>
                         
                     </form>
@@ -201,7 +202,7 @@ if(isset($_SESSION["logged_in"])){
                     type: 'POST',
                     data: {
                         userid: orderType,
-                        staffid: <?php echo isset($_SESSION["userid"]) ? $_SESSION["userid"] : 'null'; ?>
+                        staffid: orderType
                     },
                     success: function (response) {
                         if (response.success) {

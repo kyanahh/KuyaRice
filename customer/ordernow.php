@@ -17,15 +17,29 @@ if(isset($_SESSION["logged_in"])){
     $textaccount = "Account";
 }
 
+$currentDateTime = date("Y-m-d H:i:s");
+
 if (!isset($_SESSION['orderid'])) {
-    // Generate a new order ID if it doesn't exist in the session
-    $result = $connection->query("INSERT INTO orders (userid, total_amount, orderstatus) VALUES ('$textaccount', 0, 'Pending')");
-    if ($result) {
-        $_SESSION['orderid'] = $connection->insert_id; // Store the generated order ID in the session
+    // Check if there's an existing order for the user in the database
+    $checkOrderQuery = $connection->prepare("SELECT orderid FROM orders WHERE userid = ? AND orderstatus = 'Confirmed' ORDER BY ordercreated DESC LIMIT 1");
+    $checkOrderQuery->bind_param("i", $textaccount);
+    $checkOrderQuery->execute();
+    $result = $checkOrderQuery->get_result();
+    $existingOrder = $result->fetch_assoc();
+
+    if ($existingOrder) {
+        $_SESSION['orderid'] = $existingOrder['orderid']; // Use the existing order
     } else {
-        die("Error creating order: " . $connection->error); // Debugging: remove in production
+        // No existing order; create a new one
+        $result = $connection->query("INSERT INTO orders (userid, ordercreated, orderstatus, staffid) VALUES ('$textaccount',  $currentDateTime, 'Confirmed', '$textaccount')");
+        if ($result) {
+            $_SESSION['orderid'] = $connection->insert_id;
+        } else {
+            die("Error creating order: " . $connection->error);
+        }
     }
 }
+
 $orderid = $_SESSION['orderid'];
 
 

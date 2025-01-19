@@ -72,9 +72,6 @@ if(isset($_SESSION["logged_in"])){
                             <a class="nav-link" href="orders.php"><i class="bi bi-cart-check me-2"></i>Orders</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="transactions.php"><i class="bi bi-clipboard2 me-2"></i>Order Details</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="inventory.php"><i class="bi bi-person-lines-fill me-2"></i>Inventory</a>
                         </li>
                         <li class="nav-item">
@@ -106,6 +103,7 @@ if(isset($_SESSION["logged_in"])){
                 <div class="d-flex">
                     <input type="text" class="form-control me-2" id="searchUserInput" placeholder="Search" aria-label="Search" oninput="searchUsers()">
                     <a href="useradd.php" class="btn btn-dark"><i class="bi bi-plus-lg text-white"></i></a>
+                    <button class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#addGuestModal">Guest</button>
                 </div>
             </div>
 
@@ -171,6 +169,32 @@ if(isset($_SESSION["logged_in"])){
         </div>
     </div>
 
+    <!-- Add Guest Modal -->
+    <div class="modal fade" id="addGuestModal" tabindex="-1" aria-labelledby="addGuestModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addGuestModalLabel">Add Guest</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <form id="addGuestForm">
+                        <div class="mb-3">
+                            <label for="guestName" class="form-label">Guest Name</label>
+                            <input type="text" class="form-control" id="guestName" name="guestName" placeholder="Enter guest name" required>
+                        </div>
+                    </form>
+                </div>
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="saveGuestButton" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- FOOTER -->
     <footer class="bg-black d-flex align-items-center mt-5" style="height: 200px;">
@@ -263,6 +287,25 @@ if(isset($_SESSION["logged_in"])){
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <!-- Validation Error Toast -->
+        <div id="validationToast" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="validationToastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Error Toast -->
+        <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="errorToastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script -->  
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -344,6 +387,47 @@ if(isset($_SESSION["logged_in"])){
                 <?php unset($_SESSION['update_success']); // Clear the session variable after showing the toast ?>
             <?php endif; ?>
         });
+
+        document.getElementById('saveGuestButton').addEventListener('click', function () {
+            const guestName = document.getElementById('guestName').value;
+
+            if (guestName.trim() === '') {
+                // Show Validation Toast
+                const validationToast = new bootstrap.Toast(document.getElementById('validationToast'));
+                document.getElementById('validationToastMessage').innerText = 'Guest name is required!';
+                validationToast.show();
+                return;
+            }
+
+            // Send data to the server
+            fetch('save_guest.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ guestName }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Refresh the page to reflect changes
+                    } else {
+                        // Show Error Toast
+                        const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+                        document.getElementById('errorToastMessage').innerText = 'Failed to add guest: ' + data.message;
+                        errorToast.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+
+                    // Show Error Toast for Network or Server Issues
+                    const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+                    document.getElementById('errorToastMessage').innerText = 'An unexpected error occurred. Please try again.';
+                    errorToast.show();
+                });
+        });
+
     </script>
 
     <script>

@@ -805,7 +805,7 @@ if(isset($_SESSION["logged_in"])){
                     type: 'POST',
                     data: {
                         userid: orderType,
-                        staffid: <?php echo isset($_SESSION["userid"]) ? $_SESSION["userid"] : 'null'; ?>
+                        staffid: '<?php echo $textaccount; ?>'
                     },
                     success: function (response) {
                         if (response.success) {
