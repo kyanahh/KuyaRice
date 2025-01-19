@@ -139,6 +139,12 @@ if(isset($_SESSION["logged_in"])){
                                             // Confirmed
                                             if ($row['orderstatus'] == 'Confirmed') {
                                                 echo '<button class="btn btn-sm btn-info" onclick="addOrder(' . $row['orderid'] . ')">Add Order</button>';
+                                                
+                                                // Show Update Payment button if total_amount is not null or zero
+                                                if (!empty($row['total_amount']) && $row['total_amount'] > 0) {
+                                                    echo '<button class="btn btn-sm btn-success" onclick="processNow(' . $row['orderid'] . ')">Update Payment</button>';
+                                                }
+
                                             }
 
                                             // In The Kitchen
@@ -151,6 +157,7 @@ if(isset($_SESSION["logged_in"])){
                                             if ($row['orderstatus'] == 'Currently Serving') {
                                                 echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
                                                 echo '<button class="btn btn-sm btn-success" onclick="openDoneModal(' . $row['orderid'] . ')">Done</button>';
+                                                echo '<button class="btn btn-sm btn-primary" onclick="openServeModal(' . $row['orderid'] . ')">Print Receipt</button>';
                                             }
 
                                             // Done
@@ -295,15 +302,31 @@ if(isset($_SESSION["logged_in"])){
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="processModalLabel">Processing</h5>
+                    <h5 class="modal-title" id="processModalLabel">Update Payment</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to process this order?
+                    <!-- Total Amount -->
+                    <div class="mb-3">
+                        <label for="totalAmount" class="form-label">Total Amount</label>
+                        <input type="text" class="form-control" id="totalAmount" readonly>
+                    </div>
+
+                    <!-- Paid Amount -->
+                    <div class="mb-3">
+                        <label for="paidAmount" class="form-label">Paid Amount</label>
+                        <input type="number" class="form-control" id="paidAmount" placeholder="Enter paid amount">
+                    </div>
+
+                    <!-- Change Amount -->
+                    <div class="mb-3">
+                        <label for="changeAmount" class="form-label">Change Amount</label>
+                        <input type="text" class="form-control" id="changeAmount" placeholder="Change amount" readonly>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" id="processButton">Confirm</button>
+                    <button type="button" class="btn btn-success" id="processButton">Update Payment</button>
                 </div>
             </div>
         </div>
@@ -311,18 +334,51 @@ if(isset($_SESSION["logged_in"])){
 
     <!-- Serve Modal -->
     <div class="modal fade" id="serveModal" tabindex="-1" aria-labelledby="serveModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="serveModalLabel">Order Completed</h5>
+                    <h5 class="modal-title" id="serveModalLabel">Order Receipt</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to serve this order?
+                    <div id="receiptContent">
+                        <!-- Dynamically populate receipt details -->
+                        <h3>Tapsihan ni Kuya Rice</h3>
+                        <p><strong>Order #:</strong> <span id="receiptOrderId"></span></p>
+                        <p><strong>User ID:</strong> <span id="receiptUserId"></span></p>
+                        <p><strong>Customer Name:</strong> <span id="receiptCustomerName"></span></p>
+                        <h5>Order Details:</h5>
+                        <ul id="receiptOrderDetails"></ul>
+                        <p><strong>Total Amount:</strong> ₱<span id="receiptTotalAmount"></span></p>
+                        <p><strong>Amount Paid:</strong> ₱<span id="receiptAmountPaid"></span></p>
+                        <p><strong>Change Amount:</strong> ₱<span id="receiptChangeAmount"></span></p>
+                        <p><strong>Order Created:</strong> <span id="receiptOrderCreated"></span></p>
+                        <p><strong>Processed by User #:</strong> <span id="receiptStaffId"></span></p>
+                    </div>
+                    <button class="btn btn-primary" onclick="printReceipt()">Print Receipt</button>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" id="serveButton">Confirm</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="serveButton">Serve Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Modal -->
+    <div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="receiptModalLabel">Receipt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="receiptContent">
+                    <!-- Receipt content will be populated here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="printReceipt()">Print</button>
                 </div>
             </div>
         </div>
@@ -581,30 +637,81 @@ if(isset($_SESSION["logged_in"])){
         //---------------------------Process Order---------------------------//
         let processIdToConfirm = null;
 
-        // Function to open the confirmation modal
-        function processNow(orderid) {
-            console.log("Opening modal for order ID:", orderid); // Debugging log
-            processIdToConfirm = orderid;
-            const processModal = new bootstrap.Modal(document.getElementById('processModal'));
-            processModal.show();
+        // Function to populate modal with total_amount and handle calculation
+        async function processNow(orderId) {
+            processIdToConfirm = orderId; // Set the orderId to a global variable
+
+            try {
+                // Fetch total_amount asynchronously
+                const totalAmount = await getTotalAmountByOrderId(orderId);
+
+                // Set total amount in the modal
+                document.getElementById("totalAmount").value = totalAmount;
+
+                // Add event listener to calculate change_amount
+                const paidAmountInput = document.getElementById("paidAmount");
+                const changeAmountInput = document.getElementById("changeAmount");
+
+                paidAmountInput.addEventListener("input", function () {
+                    const paidAmount = parseFloat(paidAmountInput.value) || 0;
+                    const changeAmount = paidAmount - totalAmount;
+                    changeAmountInput.value = changeAmount >= 0 ? changeAmount.toFixed(2) : "0.00";
+                });
+
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById("processModal"));
+                modal.show();
+            } catch (error) {
+                console.error(error);
+                showToast("Failed to fetch total amount.", "bg-danger");
+            }
+        }
+
+        function getTotalAmountByOrderId(orderId) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "getTotalAmount.php", // Create this PHP file to fetch the total_amount
+                    method: "POST",
+                    data: { orderid: orderId },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success) {
+                            resolve(response.total_amount);
+                        } else {
+                            reject(response.error || "Failed to fetch total amount.");
+                        }
+                    },
+                    error: function () {
+                        reject("Error fetching total amount from server.");
+                    }
+                });
+            });
         }
 
         // Event listener for the confirm button in the modal
         document.getElementById('processButton').addEventListener('click', function () {
             if (processIdToConfirm) {
+                const paidAmount = parseFloat(document.getElementById("paidAmount").value) || 0;
+                const changeAmount = parseFloat(document.getElementById("changeAmount").value) || 0;
+
+                // Send the AJAX request
                 $.ajax({
                     url: "orderprocess.php",
                     method: "POST",
-                    data: { orderid: processIdToConfirm },
+                    data: {
+                        orderid: processIdToConfirm,
+                        paid_amount: paidAmount,
+                        change_amount: changeAmount
+                    },
                     dataType: "json",
                     success: function (response) {
                         if (response.success) {
-                            // Exit the modal
+                            // Hide the modal
                             const processModalElement = document.getElementById('processModal');
                             const processModal = bootstrap.Modal.getInstance(processModalElement);
                             processModal.hide();
 
-                            // Show toast and then refresh the page
+                            // Show success toast and refresh
                             showToast(response.success, "bg-success", () => {
                                 location.reload();
                             });
@@ -613,56 +720,89 @@ if(isset($_SESSION["logged_in"])){
                             showToast(response.error, "bg-danger");
                         }
                     },
-                    error: function (xhr, status, error) {
-                        // Handle errors from the AJAX request
-                        showToast('Error prcoessing the order', 'bg-danger');
+                    error: function () {
+                        // Handle AJAX errors
+                        showToast('Error processing the order.', 'bg-danger');
                     }
                 });
             }
         });
 
         //---------------------------Serve Order---------------------------//
-        let serveIdToConfirm = null;
-
-        // Function to open the confirmation modal
         function openServeModal(orderid) {
-            console.log("Opening modal for order ID:", orderid); // Debugging log
-            serveIdToConfirm = orderid;
-            const serveModal = new bootstrap.Modal(document.getElementById('serveModal'));
-            serveModal.show();
+            // Assign the order ID to a variable
+            const serveIdToConfirm = orderid;
+
+            // Log the orderid to ensure the modal is being opened
+            console.log("Opening serve modal with orderid:", serveIdToConfirm);
+
+            // Open the modal
+            const serveModalElement = document.getElementById('serveModal');
+            const serveModal = new bootstrap.Modal(serveModalElement);
+            serveModal.show(); // Open the modal
+
+            // Make AJAX request to fetch order details
+            $.ajax({
+                url: "orderserves.php",
+                method: "POST",
+                data: { orderid: serveIdToConfirm },
+                dataType: "json",
+                beforeSend: function() {
+                    console.log("Sending AJAX request to orderserve.php with orderid:", serveIdToConfirm);
+                },
+                success: function(response) {
+                    console.log("Response received:", response);
+
+                    if (response.success) {
+                        const receiptData = response.receipt;
+
+                        if (receiptData) {
+                            document.getElementById('receiptOrderId').textContent = receiptData.orderid;
+                            document.getElementById('receiptUserId').textContent = receiptData.userid;
+                            document.getElementById('receiptCustomerName').textContent = receiptData.customerName;
+                            document.getElementById('receiptTotalAmount').textContent = receiptData.totalAmount;
+                            document.getElementById('receiptAmountPaid').textContent = receiptData.amountPaid;
+                            document.getElementById('receiptChangeAmount').textContent = receiptData.changeAmount;
+                            document.getElementById('receiptOrderCreated').textContent = receiptData.orderCreated;
+                            document.getElementById('receiptStaffId').textContent = receiptData.staffId;
+
+                            const receiptDetailsList = document.getElementById('receiptOrderDetails');
+                            receiptDetailsList.innerHTML = ''; // Clear previous items
+
+                            if (receiptData.orderDetails && receiptData.orderDetails.length > 0) { 
+                                receiptData.orderDetails.forEach(item => {
+                                    const listItem = document.createElement('li');
+                                    listItem.textContent = `${item.menuitem} (x${item.quantity}) - ₱${item.price}`;
+                                    receiptDetailsList.appendChild(listItem);
+                                });
+                            } else {
+                                // Handle case where no order details are found
+                                receiptDetailsList.innerHTML = "<li>No order details found.</li>";
+                            }
+                        } else {
+                            console.error("Receipt data is empty or not available");
+                            document.getElementById('receiptContent').innerHTML = "<p>Error: No order details found.</p>"; 
+                        }
+
+                    } else {
+                        console.error("Failed to fetch order details. Error:", response.error);
+                        document.getElementById('receiptContent').innerHTML = "<p>Error: Failed to fetch order details.</p>";
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error:", status, error);
+                    document.getElementById('receiptContent').innerHTML = "<p>Error: Failed to load order details.</p>";
+                }
+            });
         }
 
-        // Event listener for the confirm button in the modal
-        document.getElementById('serveButton').addEventListener('click', function () {
-            if (serveIdToConfirm) {
-                $.ajax({
-                    url: "orderserve.php",
-                    method: "POST",
-                    data: { orderid: serveIdToConfirm },
-                    dataType: "json",
-                    success: function (response) {
-                        if (response.success) {
-                            // Exit the modal
-                            const serveModalElement = document.getElementById('serveModal');
-                            const serveModal = bootstrap.Modal.getInstance(serveModalElement);
-                            serveModal.hide();
-
-                            // Show toast and then refresh the page
-                            showToast(response.success, "bg-success", () => {
-                                location.reload();
-                            });
-                        } else {
-                            // Handle error scenario
-                            showToast(response.error, "bg-danger");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        // Handle errors from the AJAX request
-                        showToast('Error serving the order', 'bg-danger');
-                    }
-                });
-            }
-        });
+        function printReceipt() {
+            const receiptContent = document.getElementById("receiptContent").textContent;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<pre>' + receiptContent + '</pre>');
+            printWindow.document.close();
+            printWindow.print();
+        }   
 
          //---------------------------Done Order---------------------------//
          let doneIdToConfirm = null;

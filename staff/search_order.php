@@ -45,16 +45,28 @@ if (isset($_POST['query'])) {
             // Confirmed
             if ($row['orderstatus'] == 'Confirmed') {
                 echo '<button class="btn btn-sm btn-info" onclick="addOrder(' . $row['orderid'] . ')">Add Order</button>';
+                // Show Update Payment button if total_amount is not null or zero
+                if (!empty($row['total_amount']) && $row['total_amount'] > 0) {
+                    echo '<button class="btn btn-sm btn-success" onclick="processNow(' . $row['orderid'] . ')">Update Payment</button>';
+                }
             }
 
             // In The Kitchen
             if ($row['orderstatus'] == 'In The Kitchen') {
+                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
                 echo '<button class="btn btn-sm btn-success" onclick="openServeModal(' . $row['orderid'] . ')">Serve Now</button>';
             }
 
             // Currently Serving
             if ($row['orderstatus'] == 'Currently Serving') {
+                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
+                echo '<button class="btn btn-sm btn-primary" onclick="openServeModal(' . $row['orderid'] . ')">Print Receipt</button>';
                 echo '<button class="btn btn-sm btn-success" onclick="openDoneModal(' . $row['orderid'] . ')">Done</button>';
+            }
+
+            // Done
+            if ($row['orderstatus'] == 'Done') {
+                echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
             }
 
             echo '</div>';
