@@ -156,8 +156,8 @@ if(isset($_SESSION["logged_in"])){
                                             // Currently Serving
                                             if ($row['orderstatus'] == 'Currently Serving') {
                                                 echo '<button class="btn btn-sm btn-info" onclick="View(' . $row['orderid'] . ')">View</button>';
-                                                echo '<button class="btn btn-sm btn-success" onclick="openDoneModal(' . $row['orderid'] . ')">Done</button>';
                                                 echo '<button class="btn btn-sm btn-primary" onclick="openServeModal(' . $row['orderid'] . ')">Print Receipt</button>';
+                                                echo '<button class="btn btn-sm btn-success" onclick="openDoneModal(' . $row['orderid'] . ')">Done</button>';
                                             }
 
                                             // Done
