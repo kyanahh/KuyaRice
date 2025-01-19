@@ -144,8 +144,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     
     <nav class="navbar navbar-expand-lg py-3 bg-black text-white">
         <div class="container-fluid">
-            <img src="../img/logobg.png" alt="KUYA RICE" style="height: 7vh;" class="ms-3">
-          <div class="collapse navbar-collapse d-flex justify-content-end" id="navbarNavDropdown">
+            <a href="customerhome.php">
+                <img src="../img/logobg.png" alt="KUYA RICE" style="height: 7vh;" class="ms-3">
+            </a>          
+            <div class="collapse navbar-collapse d-flex justify-content-end" id="navbarNavDropdown">
             <ul class="navbar-nav grid gap-3">
 
               <!-- HOME -->

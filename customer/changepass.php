@@ -68,7 +68,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     <nav class="navbar navbar-expand-lg py-3 bg-black text-white fixed-top">
         <div class="container-fluid">
-            <img src="../img/logobg.png" alt="KUYA RICE" style="height: 7vh;" class="ms-3">
+            <a href="customerhome.php">
+                <img src="../img/logobg.png" alt="KUYA RICE" style="height: 7vh;" class="ms-3">
+            </a>
           <div class="collapse navbar-collapse d-flex justify-content-end" id="navbarNavDropdown">
             <ul class="navbar-nav grid gap-3">
 
