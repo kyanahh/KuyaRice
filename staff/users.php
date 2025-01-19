@@ -102,6 +102,7 @@ if(isset($_SESSION["logged_in"])){
                 <h2 class="fs-5 m-0">Users</h2>
                 <div class="d-flex">
                     <input type="text" class="form-control me-2" id="searchUserInput" placeholder="Search" aria-label="Search" oninput="searchUsers()">
+                    <button class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#addGuestModal">Guest</button>
                 </div>
             </div>
 
@@ -163,6 +164,25 @@ if(isset($_SESSION["logged_in"])){
 
             <!-- Search Results -->
             <div id="search-results" class="mt-4"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <!-- Validation Error Toast -->
+        <div id="validationToast" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="validationToastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Error Toast -->
+        <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="errorToastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
         </div>
     </div>
 
@@ -256,6 +276,47 @@ if(isset($_SESSION["logged_in"])){
         function editUser(userid) {
             window.location = "useredit.php?userid=" + userid;
         }
+
+        // GUEST USER 
+        document.getElementById('saveGuestButton').addEventListener('click', function () {
+            const guestName = document.getElementById('guestName').value;
+
+            if (guestName.trim() === '') {
+                // Show Validation Toast
+                const validationToast = new bootstrap.Toast(document.getElementById('validationToast'));
+                document.getElementById('validationToastMessage').innerText = 'Guest name is required!';
+                validationToast.show();
+                return;
+            }
+
+            // Send data to the server
+            fetch('save_guest.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ guestName }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Refresh the page to reflect changes
+                    } else {
+                        // Show Error Toast
+                        const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+                        document.getElementById('errorToastMessage').innerText = 'Failed to add guest: ' + data.message;
+                        errorToast.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+
+                    // Show Error Toast for Network or Server Issues
+                    const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+                    document.getElementById('errorToastMessage').innerText = 'An unexpected error occurred. Please try again.';
+                    errorToast.show();
+                });
+        });
 
     </script>
 
