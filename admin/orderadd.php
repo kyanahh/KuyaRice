@@ -2,16 +2,20 @@
 session_start();
 require("../server/connection.php");
 
-if(isset($_SESSION["logged_in"])){
-    if(isset($_SESSION["userid"])){
+if (isset($_SESSION["logged_in"])) {
+    if (isset($_SESSION["userid"])) {
         $textaccount = $_SESSION["userid"];
         $fname = $_SESSION["firstname"];
         $lname = $_SESSION["lastname"];
         $useremail = $_SESSION["email"];
-    }else{
+
+        // Check if it's the first visit after login
+        $showToast = isset($_SESSION["show_toast"]) && $_SESSION["show_toast"] === true;
+        unset($_SESSION["show_toast"]); // Clear the toast flag after showing
+    } else {
         $textaccount = "Account";
     }
-}else{
+} else {
     $textaccount = "Account";
 }
 
@@ -25,6 +29,29 @@ if (!isset($_SESSION['orderid'])) {
     }
 }
 $orderid = $_SESSION['orderid'];
+
+
+// Fetch the order details based on the orderid
+if (isset($_GET['orderid'])) {
+    $orderid = $_GET['orderid'];
+
+    $order_query = $connection->prepare("SELECT * FROM orders WHERE orderid = ?");
+    $order_query->bind_param("i", $orderid);
+    $order_query->execute();
+    $order_result = $order_query->get_result();
+    $order = $order_result->fetch_assoc();
+
+    if ($order) {
+        $order_id_display = $order['orderid'];
+        $order_total_amount = number_format($order['total_amount'], 2);
+    } else {
+        $order_id_display = 'Not Available';
+        $order_total_amount = 'N/A';
+    }
+} else {
+    $order_id_display = 'Not Available';
+    $order_total_amount = 'N/A';
+}
     
 // Initialize cart if not set
 if (!isset($_SESSION['cart'])) {

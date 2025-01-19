@@ -800,40 +800,28 @@ if(isset($_SESSION["logged_in"])){
             $('#saveOrderButton').on('click', function () {
                 const orderType = $('#orderTypeInput').val();
 
-                if (orderType.trim() === '') {
-                    showDynamicToast('Please enter a User ID.', 'warning');
-                    return;
-                }
-
-                // Send data to the server, including the logged-in staff ID (from session)
                 $.ajax({
-                    url: 'orderadding.php',
+                    url: 'orderaddingstaff.php',
                     type: 'POST',
-                    data: { 
-                        userid: orderType, 
-                        staffid: <?php echo isset($_SESSION["userid"]) ? $_SESSION["userid"] : 'null'; ?>  // Pass the logged-in user's ID
+                    data: {
+                        userid: orderType,
+                        staffid: <?php echo isset($_SESSION["userid"]) ? $_SESSION["userid"] : 'null'; ?>
                     },
                     success: function (response) {
-                        const result = JSON.parse(response);
+                        if (response.success) {
+                            showToast(response.message, "bg-success");
 
-                        if (result.success) {
-                            // Exit the modal
-                            const orderModalElement = document.getElementById('addOrderModal');
-                            const addOrderModal = bootstrap.Modal.getInstance(orderModalElement);
-                            addOrderModal.hide();
-
-                            // Show toast and then refresh the page
-                            showToast('User ID in order added successfully.', "bg-success", () => {
-                                location.reload();
-                            });
+                            // Redirect to ordernow.php with the latest orderid
+                            const orderid = response.orderid;
+                            setTimeout(() => {
+                                window.location.href = 'orderadd.php?orderid=' + orderid;
+                            }, 1500); // Redirect after 1.5 seconds to allow toast visibility
                         } else {
-                            // Handle error scenario
-                            showToast('Error adding User ID in order: ' + result.message, "bg-danger");
+                            showToast(response.message, "bg-danger");
                         }
                     },
-                    error: function (xhr, status, error) {
-                        // Handle errors from the AJAX request
-                        showToast('An error occurred while adding the User ID to the order.', 'bg-danger');
+                    error: function () {
+                        showToast('An error occurred while adding the order.', 'bg-danger');
                     }
                 });
             });
