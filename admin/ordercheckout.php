@@ -252,10 +252,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                     </div>
 
                     <!-- GCash QR Code -->
-                    <!--<div id="gcash_qr" class="mb-3" style="display: none;">
-                        <label class="form-label">GCash QR Code</label>
-                        <img src="path/to/gcash_qr_code.png" alt="GCash QR Code" class="img-fluid">
-                    </div>-->
+                    <div id="gcash_qr" class="mb-3" style="display: none;">
+                        <img src="../img/gcash.png" alt="GCash QR Code" class="img-fluid">
+                    </div>
 
                     <input type="hidden" name="orderid" value="<?php echo $orderid; ?>">
                     <button type="submit" name="place_order" class="btn btn-success">Place Order</button>
@@ -347,6 +346,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
             document.getElementById('change_amount').value = changeAmount.toFixed(2);
             document.getElementById('change_display').textContent = changeAmount.toFixed(2);
             document.getElementById('paid_display').textContent = paidAmount.toFixed(2);
+        });
+
+        // Toggle visibility of GCash QR code based on payment method selection
+        $(document).ready(function() {
+            $('#payment_method').change(function() {
+                if ($(this).val() == 'gcash') {
+                    $('#gcash_qr').show();  // Show GCash QR code
+                } else {
+                    $('#gcash_qr').hide();  // Hide GCash QR code
+                }
+            });
+
+            // Initial check for selected payment method when the page loads
+            if ($('#payment_method').val() == 'gcash') {
+                $('#gcash_qr').show();  // Show GCash QR code if already selected
+            } else {
+                $('#gcash_qr').hide();  // Hide GCash QR code otherwise
+            }
         });
 
     </script>
